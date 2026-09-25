@@ -1,6 +1,6 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {HashrateOrderCard} from "@/components/HashrateOrderCard";
 import {
   HASHRATE_DURATIONS,
@@ -42,28 +42,25 @@ export default function MarketPage() {
     return params.toString();
   }, [duration, maxPrice, mode, page, query, region]);
 
-  const load = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/hashrate/orders?${search}`, {
-        cache: "no-store",
-        signal,
-      });
-      const data = (await response.json()) as MarketResponse;
-      setOrders(data.orders ?? []);
-      setTotal(data.total ?? 0);
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [search]);
-
   useEffect(() => {
     const controller = new AbortController();
-    void load(controller.signal);
+    void fetch(`/api/hashrate/orders?${search}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then((response) => response.json() as Promise<MarketResponse>)
+      .then((data) => {
+        setOrders(data.orders ?? []);
+        setTotal(data.total ?? 0);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
     return () => controller.abort();
-  }, [load]);
+  }, [search]);
 
   function updateFilter(setter: (value: string) => void, value: string) {
+    setLoading(true);
     setPage(1);
     setter(value);
   }
@@ -183,7 +180,10 @@ export default function MarketPage() {
             <button
               type="button"
               disabled={page <= 1 || loading}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              onClick={() => {
+                setLoading(true);
+                setPage((value) => Math.max(1, value - 1));
+              }}
               className="border border-white/10 px-5 py-2.5 font-[family-name:var(--font-mono)] text-[10px] text-white/65 disabled:opacity-25"
             >
               PREVIOUS
@@ -191,7 +191,10 @@ export default function MarketPage() {
             <button
               type="button"
               disabled={page >= pageCount || loading}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
+              onClick={() => {
+                setLoading(true);
+                setPage((value) => Math.min(pageCount, value + 1));
+              }}
               className="border border-white/10 px-5 py-2.5 font-[family-name:var(--font-mono)] text-[10px] text-white/65 disabled:opacity-25"
             >
               NEXT
