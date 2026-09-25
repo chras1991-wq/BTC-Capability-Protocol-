@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type {HashrateOrder} from "@/lib/hashrate";
-import {formatUsd} from "@/lib/hashrate";
+import type {ExecutionOrder} from "@/lib/execution";
+import {formatUsd} from "@/lib/execution";
 
-export function HashrateOrderCard({order}: {order: HashrateOrder}) {
+export function ExecutionOrderCard({order}: {order: ExecutionOrder}) {
   return (
     <Link
       href={`/order/${order.id}`}
@@ -16,11 +16,11 @@ export function HashrateOrderCard({order}: {order: HashrateOrder}) {
       <div className="mt-8 flex items-end justify-between gap-4">
         <div>
           <p className="font-[family-name:var(--font-display)] text-3xl font-700 text-white">
-            {order.hashrateTh}
+            {order.capacityTh}
             <span className="ml-1 text-sm font-500 text-white/40">TH/s</span>
           </p>
           <p className="mt-1 font-[family-name:var(--font-mono)] text-[10px] text-white/40">
-            {order.durationLabel} · {order.modeLabel}
+            {order.durationLabel} · {order.classLabel}
           </p>
         </div>
         <p className="font-[family-name:var(--font-display)] text-xl font-700 text-[#e6a06e]">
@@ -33,16 +33,18 @@ export function HashrateOrderCard({order}: {order: HashrateOrder}) {
 
       <div className="mt-8 grid grid-cols-2 gap-px bg-white/10 font-[family-name:var(--font-mono)] text-[10px]">
         <div className="bg-[#0e1115] py-3 pr-3 group-hover:bg-[#12161b]">
-          <span className="block text-white/25">ROUTE</span>
-          <span className="mt-1 block text-white/65">{order.regionLabel}</span>
+          <span className="block text-white/25">DOMAIN</span>
+          <span className="mt-1 block text-white/65">{order.domainLabel}</span>
         </div>
         <div className="bg-[#0e1115] py-3 pl-3 group-hover:bg-[#12161b]">
-          <span className="block text-white/25">STRATUM</span>
-          <span className="mt-1 block text-white/65">{order.stratumVersion}</span>
+          <span className="block text-white/25">TRANSPORT</span>
+          <span className="mt-1 block text-white/65">{order.transportVersion}</span>
         </div>
         <div className="bg-[#0e1115] py-3 pr-3 group-hover:bg-[#12161b]">
-          <span className="block text-white/25">EFFICIENCY</span>
-          <span className="mt-1 block text-white/65">{order.efficiencyJTh.toFixed(1)} J/TH</span>
+          <span className="block text-white/25">ENERGY ENVELOPE</span>
+          <span className="mt-1 block text-white/65">
+            {order.energyEnvelopeJTh.toFixed(1)} J/TH
+          </span>
         </div>
         <div className="bg-[#0e1115] py-3 pl-3 group-hover:bg-[#12161b]">
           <span className="block text-white/25">TELEMETRY</span>

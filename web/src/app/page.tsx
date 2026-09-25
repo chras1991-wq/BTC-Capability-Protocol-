@@ -9,24 +9,24 @@ export default function HomePage() {
         <HeroVisual />
         <div className="relative z-10 flex min-h-[100svh] flex-col justify-end px-5 pb-14 pt-28 md:px-10 md:pb-16 lg:max-w-[52%] lg:justify-center lg:pb-0">
           <p className="animate-rise font-[family-name:var(--font-mono)] text-[11px] tracking-[0.22em] text-[var(--copper-bright)] uppercase">
-            Bitcoin Hashrate Rights Layer
+            Bitcoin Execution Rights Protocol
           </p>
           <p className="animate-rise mt-3 font-[family-name:var(--font-display)] text-[clamp(4.2rem,13vw,8.5rem)] font-800 leading-[0.85] tracking-[-0.04em] text-[var(--mist)]">
             ROOT
           </p>
           <h1 className="animate-rise-delay-1 mt-5 max-w-md font-[family-name:var(--font-display)] text-[clamp(1.45rem,3vw,2.1rem)] font-600 leading-tight text-[var(--mist)]">
-            Route the work. Verify every share.
+            Own the infrastructure. Lease the execution.
           </h1>
           <p className="animate-rise-delay-2 mt-6 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/60 md:text-[13px]">
-            <span className="block">SHA-256 leases · Stratum policy · signed telemetry</span>
-            <span className="mt-1 block">21,000 deterministic execution specifications</span>
+            <span className="block">Bounded authority · policy routing · signed telemetry</span>
+            <span className="mt-1 block">21,000 deterministic capability contracts</span>
           </p>
           <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
             <Link
               href="/market"
               className="bg-[var(--copper)] px-5 py-3 text-sm font-600 text-[var(--mist)] transition hover:bg-[var(--copper-bright)]"
             >
-              Explore hashrate
+              Explore execution rights
             </Link>
             <Link
               href="/market"
@@ -47,7 +47,7 @@ export default function HomePage() {
               Primitive / HRC
             </p>
             <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl font-700 md:text-3xl">
-              Hashrate capability
+              Execution capability
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[var(--mist)]/55">
               Time-bounded SHA-256 execution authority with explicit routing,
@@ -55,14 +55,14 @@ export default function HomePage() {
             </p>
           </div>
           <pre className="overflow-x-auto border border-[var(--mist)]/12 bg-[#0c0f13] p-5 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/80 md:text-[13px]">
-{`Lease(H, T, Π)
-├─ source    → miner attestation
-├─ route     → Stratum V1 / V2
-├─ measure   → accepted-share stream
-├─ settle    → PPS / FPPS / coinbase
+{`Right(C, T, Π)
+├─ owner     → infrastructure operator
+├─ delegate  → bounded execution authority
+├─ route     → declared work endpoint
+├─ attest    → signed capacity stream
 └─ expire    → deterministic cutoff
 
-Π := { H, T, pool, latency, J/TH }`}
+Π := { C, T, domain, latency, energy }`}
           </pre>
         </div>
       </section>
@@ -76,13 +76,13 @@ export default function HomePage() {
             {[
               {
                 v: "01",
-                t: "Supply attestation",
-                d: "Miner identity · endpoint challenge · signed machine profile",
+                t: "Capacity attestation",
+                d: "Operator identity · route challenge · signed capacity profile",
               },
               {
                 v: "02",
-                t: "Share telemetry",
-                d: "Stratum jobs · accepted shares · rolling hashrate EMA",
+                t: "Execution telemetry",
+                d: "Work admission · proof stream · rolling capacity EMA",
               },
               {
                 v: "03",

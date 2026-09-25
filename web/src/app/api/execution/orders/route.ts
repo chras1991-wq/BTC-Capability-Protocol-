@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {listHashrateOrders} from "@/lib/hashrate";
+import {listExecutionOrders} from "@/lib/execution";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +11,11 @@ function optionalPositiveInt(value: string | null): number | undefined {
 
 export async function GET(request: Request) {
   const {searchParams} = new URL(request.url);
-  const result = listHashrateOrders({
+  const result = listExecutionOrders({
     page: optionalPositiveInt(searchParams.get("page")),
     pageSize: optionalPositiveInt(searchParams.get("pageSize")),
-    region: searchParams.get("region") || undefined,
-    mode: searchParams.get("mode") || undefined,
+    domain: searchParams.get("domain") || undefined,
+    executionClass: searchParams.get("executionClass") || undefined,
     duration: optionalPositiveInt(searchParams.get("duration")),
     maxPriceCents: optionalPositiveInt(searchParams.get("maxPriceCents")),
     query: searchParams.get("query") || undefined,
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     ...result,
     catalogSize: 21_000,
     origin: "operator",
-    inventoryState: "specification-only",
+    inventoryState: "capability-specification",
     executionEnabled: false,
   });
 }

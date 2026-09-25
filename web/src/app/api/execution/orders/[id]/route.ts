@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {getHashrateOrder, parseOrderId} from "@/lib/hashrate";
+import {getExecutionOrder, parseExecutionOrderId} from "@/lib/execution";
 
 export const dynamic = "force-dynamic";
 
@@ -8,16 +8,16 @@ export async function GET(
   context: {params: Promise<{id: string}>},
 ) {
   const {id} = await context.params;
-  const ordinal = parseOrderId(id);
+  const ordinal = parseExecutionOrderId(id);
   if (ordinal == null) {
-    return NextResponse.json({error: "order specification not found"}, {status: 404});
+    return NextResponse.json({error: "execution right not found"}, {status: 404});
   }
 
   return NextResponse.json({
-    order: getHashrateOrder(ordinal),
+    order: getExecutionOrder(ordinal),
     execution: {
       enabled: false,
-      reason: "supplier Stratum endpoint and signed telemetry proof required",
+      reason: "operator route control and signed capacity proof required",
     },
   });
 }

@@ -11,16 +11,16 @@ export function ProtocolStatus() {
               Contract matrix.
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/45">
-              Deterministic order specifications are live. Executable inventory
-              stays at zero until miners prove control of the advertised supply.
+              Deterministic capability specifications are live. Activation stays
+              gated until the operator proves control of the declared capacity.
             </p>
           </div>
 
           <div className="grid border-l border-t border-white/10 sm:grid-cols-3">
             {[
               ["Order specs", "21,000"],
-              ["Verified supply", "0"],
-              ["Settled leases", "0"],
+              ["Verified capacity", "0"],
+              ["Bound rights", "0"],
             ].map(([label, value], index) => (
               <div
                 key={label}
@@ -43,7 +43,7 @@ export function ProtocolStatus() {
         <div className="mt-12 grid border-l border-t border-white/10 md:grid-cols-3">
           {[
             ["Order compiler", "Deterministic HRC matrix", "LIVE"],
-            ["Supply verifier", "Stratum challenge path", "RESEARCH"],
+            ["Capacity verifier", "Route challenge path", "RESEARCH"],
             ["Settlement rail", "Bitcoin mainnet", "GATED"],
           ].map(([layer, implementation, status]) => (
             <div

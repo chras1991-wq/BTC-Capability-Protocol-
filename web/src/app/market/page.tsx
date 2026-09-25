@@ -1,16 +1,16 @@
 "use client";
 
 import {useEffect, useMemo, useState} from "react";
-import {HashrateOrderCard} from "@/components/HashrateOrderCard";
+import {ExecutionOrderCard} from "@/components/ExecutionOrderCard";
 import {
-  HASHRATE_DURATIONS,
-  HASHRATE_MODES,
-  HASHRATE_REGIONS,
-  type HashrateOrder,
-} from "@/lib/hashrate";
+  EXECUTION_CLASSES,
+  EXECUTION_DOMAINS,
+  EXECUTION_WINDOWS,
+  type ExecutionOrder,
+} from "@/lib/execution";
 
 type MarketResponse = {
-  orders: HashrateOrder[];
+  orders: ExecutionOrder[];
   total: number;
   page: number;
   pageSize: number;
@@ -19,7 +19,7 @@ type MarketResponse = {
 const PAGE_SIZE = 24;
 
 export default function MarketPage() {
-  const [orders, setOrders] = useState<HashrateOrder[]>([]);
+  const [orders, setOrders] = useState<ExecutionOrder[]>([]);
   const [total, setTotal] = useState(21_000);
   const [page, setPage] = useState(1);
   const [region, setRegion] = useState("");
@@ -35,8 +35,8 @@ export default function MarketPage() {
       pageSize: String(PAGE_SIZE),
       maxPriceCents: maxPrice,
     });
-    if (region) params.set("region", region);
-    if (mode) params.set("mode", mode);
+    if (region) params.set("domain", region);
+    if (mode) params.set("executionClass", mode);
     if (duration) params.set("duration", duration);
     if (query.trim()) params.set("query", query.trim());
     return params.toString();
@@ -44,7 +44,7 @@ export default function MarketPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetch(`/api/hashrate/orders?${search}`, {
+    void fetch(`/api/execution/orders?${search}`, {
       cache: "no-store",
       signal: controller.signal,
     })
@@ -75,15 +75,16 @@ export default function MarketPage() {
           <div className="flex flex-col justify-between gap-10 lg:flex-row lg:items-end">
             <div>
               <p className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.24em] text-[#d4844a] uppercase">
-                SHA-256 execution market / test catalog
+                Bitcoin capability market / execution layer
               </p>
               <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-display)] text-4xl font-750 leading-[0.98] tracking-[-0.025em] md:text-6xl">
-                Hashrate, routed by contract.
+                Execution rights, bounded by policy.
               </h1>
               <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/48 md:text-base">
-                21,000 operator-generated lease specifications spanning route,
-                duration, telemetry and settlement policy. Execution opens only
-                after the supplied miners bind signed capacity proof.
+                21,000 operator-originated capability contracts spanning
+                bandwidth, duration, routing domain and verification policy.
+                Infrastructure stays with its owner; narrow execution authority
+                moves under explicit constraints.
               </p>
             </div>
             <dl className="grid min-w-[310px] grid-cols-3 border-l border-t border-white/10 font-[family-name:var(--font-mono)]">
@@ -107,7 +108,7 @@ export default function MarketPage() {
           <input
             value={query}
             onChange={(event) => updateFilter(setQuery, event.target.value)}
-            placeholder="ORDER ID / HRC-00001"
+            placeholder="ORDER ID / ROOT-00001"
             className="h-10 border border-white/10 bg-white/[0.025] px-3 font-[family-name:var(--font-mono)] text-[10px] text-white outline-none placeholder:text-white/20 focus:border-[#d4844a]/60"
           />
           <select
@@ -116,7 +117,7 @@ export default function MarketPage() {
             className="h-10 border border-white/10 bg-[#0e1115] px-3 font-[family-name:var(--font-mono)] text-[10px] text-white/70 outline-none"
           >
             <option value="">ALL FUNCTIONS</option>
-            {HASHRATE_MODES.map((item) => (
+            {EXECUTION_CLASSES.map((item) => (
               <option key={item.id} value={item.id}>{item.label.toUpperCase()}</option>
             ))}
           </select>
@@ -126,7 +127,7 @@ export default function MarketPage() {
             className="h-10 border border-white/10 bg-[#0e1115] px-3 font-[family-name:var(--font-mono)] text-[10px] text-white/70 outline-none"
           >
             <option value="">ALL ROUTES</option>
-            {HASHRATE_REGIONS.map((item) => (
+            {EXECUTION_DOMAINS.map((item) => (
               <option key={item.id} value={item.id}>{item.label.toUpperCase()}</option>
             ))}
           </select>
@@ -136,7 +137,7 @@ export default function MarketPage() {
             className="h-10 border border-white/10 bg-[#0e1115] px-3 font-[family-name:var(--font-mono)] text-[10px] text-white/70 outline-none"
           >
             <option value="">ALL WINDOWS</option>
-            {HASHRATE_DURATIONS.map((item) => (
+            {EXECUTION_WINDOWS.map((item) => (
               <option key={item.minutes} value={item.minutes}>{item.label.toUpperCase()}</option>
             ))}
           </select>
@@ -167,7 +168,7 @@ export default function MarketPage() {
           ) : orders.length ? (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {orders.map((order) => (
-                <HashrateOrderCard key={order.id} order={order} />
+                <ExecutionOrderCard key={order.id} order={order} />
               ))}
             </div>
           ) : (
@@ -209,8 +210,8 @@ export default function MarketPage() {
               <p className="mt-2 max-w-3xl text-xs leading-relaxed text-white/45">
                 Values from $5–$20 are BTC/USD quote references. Orders settle
                 exclusively in sats on Bitcoin mainnet with a 5,000-sat floor.
-                Checkout remains locked until hashrate ownership, Stratum control
-                and telemetry signing are verified.
+                Checkout remains locked until capacity ownership, route control
+                and signed telemetry are verified.
               </p>
             </div>
             <span className="mt-4 font-[family-name:var(--font-mono)] text-[10px] text-white/30 md:mt-0">

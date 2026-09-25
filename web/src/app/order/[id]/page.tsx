@@ -1,32 +1,36 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {quoteUsdCentsInSats} from "@/lib/bitcoin-price";
-import {formatUsd, getHashrateOrder, parseOrderId} from "@/lib/hashrate";
+import {
+  formatUsd,
+  getExecutionOrder,
+  parseExecutionOrderId,
+} from "@/lib/execution";
 
-export default async function HashrateOrderPage({
+export default async function ExecutionOrderPage({
   params,
 }: {
   params: Promise<{id: string}>;
 }) {
   const {id} = await params;
-  const ordinal = parseOrderId(id);
+  const ordinal = parseExecutionOrderId(id);
   if (ordinal == null) notFound();
-  const order = getHashrateOrder(ordinal);
+  const order = getExecutionOrder(ordinal);
   const quote = await quoteUsdCentsInSats(order.priceCents).catch(() => null);
 
   const rows = [
     ["Algorithm", "SHA-256"],
-    ["Compute", `${order.hashrateTh} TH/s`],
+    ["Execution bandwidth", `${order.capacityTh} TH/s`],
     ["Window", order.durationLabel],
-    ["Route policy", order.modeLabel],
-    ["Region profile", order.regionLabel],
+    ["Capability class", order.classLabel],
+    ["Routing domain", order.domainLabel],
     ["Target latency", `≤ ${order.targetLatencyMs} ms`],
-    ["Efficiency ceiling", `${order.efficiencyJTh.toFixed(1)} J/TH`],
-    ["Stratum", order.stratumVersion],
-    ["Accounting", order.payoutPolicy],
+    ["Energy envelope", `${order.energyEnvelopeJTh.toFixed(1)} J/TH`],
+    ["Transport", order.transportVersion],
+    ["Accounting", order.accountingPolicy],
     ["Telemetry", order.telemetry],
-    ["Accepted-share floor", String(order.minAcceptedShares)],
-    ["Start window", `${order.startWindowMinutes} min`],
+    ["Proof-unit floor", String(order.minimumProofUnits)],
+    ["Activation window", `${order.activationWindowMinutes} min`],
   ];
 
   return (
@@ -44,15 +48,15 @@ export default async function HashrateOrderPage({
             <div className="flex flex-wrap items-center gap-3 font-[family-name:var(--font-mono)] text-[9px] tracking-[0.16em] uppercase">
               <span className="text-[#d4844a]">{order.id}</span>
               <span className="h-px w-8 bg-white/15" />
-              <span className="text-white/30">SHA-256 lease specification</span>
+              <span className="text-white/30">Bitcoin execution right</span>
             </div>
             <h1 className="mt-6 font-[family-name:var(--font-display)] text-5xl font-750 leading-none md:text-7xl">
-              {order.hashrateTh}
+              {order.capacityTh}
               <span className="ml-2 text-xl text-white/35 md:text-2xl">TH/s</span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/48">
-              {order.function}. This specification defines the execution envelope;
-              it does not represent connected supply until attestation completes.
+              {order.function}. Ownership remains with the infrastructure operator;
+              this contract exposes only a bounded, time-limited execution right.
             </p>
 
             <dl className="mt-10 grid border-l border-t border-white/10 sm:grid-cols-2">
@@ -73,10 +77,10 @@ export default async function HashrateOrderPage({
                 Verification predicate
               </p>
               <pre className="mt-4 overflow-x-auto font-[family-name:var(--font-mono)] text-[11px] leading-relaxed text-white/60">
-{`accept(order, proof) :=
-  proof.stratum_control == valid
-  ∧ proof.hashrate_ema ≥ ${order.hashrateTh} TH/s
-  ∧ proof.efficiency ≤ ${order.efficiencyJTh.toFixed(1)} J/TH
+{`accept(right, proof) :=
+  proof.route_control == valid
+  ∧ proof.capacity_ema ≥ ${order.capacityTh} TH/s
+  ∧ proof.energy_envelope ≤ ${order.energyEnvelopeJTh.toFixed(1)} J/TH
   ∧ proof.route_latency ≤ ${order.targetLatencyMs} ms
   ∧ proof.window ≥ ${order.durationMinutes} min`}
               </pre>
@@ -99,7 +103,7 @@ export default async function HashrateOrderPage({
             </div>
             <div className="mt-5 border-y border-white/10 py-4 font-[family-name:var(--font-mono)] text-[10px]">
               <div className="flex justify-between gap-3">
-                <span className="text-white/28">SUPPLY PROOF</span>
+                <span className="text-white/28">CAPACITY PROOF</span>
                 <span className="text-[#d4844a]">MISSING</span>
               </div>
               <div className="mt-3 flex justify-between gap-3">
@@ -112,12 +116,12 @@ export default async function HashrateOrderPage({
               disabled
               className="mt-5 w-full cursor-not-allowed border border-white/10 bg-white/[0.035] py-3.5 text-sm text-white/28"
             >
-              Awaiting verified supply
+              Awaiting verified capacity
             </button>
             <p className="mt-4 text-[11px] leading-relaxed text-white/30">
-              No payment is accepted for an unattested contract. All leases settle
-              directly in BTC sats on Bitcoin mainnet with a 5,000-sat minimum
-              output. USD is a 60-second pricing reference only.
+              No payment is accepted for an unattested execution right. Settlement
+              is denominated in BTC sats on mainnet with a 5,000-sat minimum output.
+              USD is a 60-second pricing reference only.
             </p>
           </aside>
         </div>

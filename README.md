@@ -1,18 +1,17 @@
-# ROOT Hashrate Market
+# ROOT — Bitcoin Execution Rights
 
-**Route the work. Verify every share.**
+**Own the infrastructure. Lease the execution.**
 
-ROOT exposes 21,000 deterministic SHA-256 lease specifications priced from
-**$5.00 to $20.00**. Every order has a distinct compute amount, execution
-window, route policy, region profile, efficiency ceiling, telemetry mode and
-accounting policy.
+ROOT separates infrastructure ownership from narrow execution authority. It
+exposes 21,000 deterministic Bitcoin capability contracts priced from **$5.00
+to $20.00**. Every contract has a distinct bandwidth, execution window, route
+policy, domain, energy envelope, telemetry mode and accounting policy.
 
-The catalog is not presented as connected mining inventory. An order cannot
-accept payment until the operator binds:
+An execution right cannot accept payment until the operator binds:
 
-- control of the advertised Stratum endpoint;
-- sufficient measured SHA-256 capacity;
-- signed share telemetry for the lease window;
+- control of the declared work endpoint;
+- sufficient measured execution capacity;
+- signed capacity telemetry for the contract window;
 - a Bitcoin mainnet settlement address.
 
 All orders settle directly in BTC sats on Bitcoin mainnet. The USD values are
@@ -32,7 +31,7 @@ npm run dev
 - `/order/[id]` — complete lease specification and execution gate
 - `/mint` — redirects to the market
 - `/me` — authenticated account
-- `/api/hashrate/orders` — paginated deterministic catalog
+- `/api/execution/orders` — paginated deterministic catalog
 
 ## Deploy (Vercel)
 
@@ -42,7 +41,7 @@ npm run dev
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
 4. Add `PRIVY_APP_SECRET`
-5. Add the operator hashrate provider credentials
+5. Add the execution-capacity provider credentials
 6. Deploy
 
 Or CLI:
@@ -54,16 +53,16 @@ npx vercel --prod
 
 ## Catalog model
 
-See `web/src/lib/hashrate.ts`:
+See `web/src/lib/execution.ts`:
 
 - fixed size: 21,000 order specifications;
 - lease values: $5.00–$20.00;
 - algorithm: SHA-256;
-- functions: FPPS, PPS, solo, failover and benchmark routes;
+- classes: priority, dedicated, burst, continuity and proof windows;
 - durations: 10 minutes through 24 hours;
-- deterministic IDs: `HRC-00001` through `HRC-21000`.
+- deterministic IDs: `ROOT-00001` through `ROOT-21000`.
 
-Checkout is intentionally locked in this repository until a real operator
-supply adapter is configured. Settlement uses Bitcoin mainnet only. The previous
+Checkout is intentionally locked until the operator capacity adapter is
+configured. Settlement uses Bitcoin mainnet only. The previous
 fixed-fee capability mint API remains only for legacy records and is no longer
 linked from the product UI.

@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const auth = serverAuthConfigured();
   const durableStore = redisConfigured();
-  const hashrateProvider = Boolean(
-    process.env.HASHRATE_PROVIDER_URL &&
-      process.env.HASHRATE_PROVIDER_TOKEN &&
-      process.env.HASHRATE_SUPPLIER_ID,
+  const executionProvider = Boolean(
+    process.env.EXECUTION_PROVIDER_URL &&
+      process.env.EXECUTION_PROVIDER_TOKEN &&
+      process.env.EXECUTION_OPERATOR_ID,
   );
   return NextResponse.json({
     network: "bitcoin-mainnet",
@@ -26,13 +26,13 @@ export async function GET() {
     durableStore,
     issuanceEnabled: auth && durableStore,
     verifier: "mempool.space",
-    hashrateMarket: {
+    executionMarket: {
       catalogSize: 21_000,
-      supplierGenerated: true,
-      hashrateProvider,
+      operatorOriginated: true,
+      executionProvider,
       settlementNetwork: "bitcoin-mainnet",
       minimumOrderSats: 5_000,
-      checkoutEnabled: auth && durableStore && hashrateProvider,
+      checkoutEnabled: auth && durableStore && executionProvider,
     },
   });
 }

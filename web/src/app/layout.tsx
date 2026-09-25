@@ -23,9 +23,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ROOT — Bitcoin Hashrate Market",
+  title: "ROOT — Bitcoin Execution Rights",
   description:
-    "Operator-generated SHA-256 lease specifications with Stratum routing and share telemetry constraints.",
+    "A Bitcoin capability market for bounded, verifiable execution rights.",
   icons: { icon: "/icon.svg" },
 };
 

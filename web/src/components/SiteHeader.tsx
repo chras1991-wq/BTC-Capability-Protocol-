@@ -6,7 +6,7 @@ import { RootMark } from "./RootMark";
 import { useWallet } from "@/lib/wallet";
 
 const NAV = [
-  { href: "/market", label: "Hashrate" },
+  { href: "/market", label: "Capabilities" },
   { href: "/me", label: "Account" },
 ];
 
