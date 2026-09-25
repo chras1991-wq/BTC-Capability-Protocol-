@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
+import {quoteUsdCentsInSats} from "@/lib/bitcoin-price";
 import {formatUsd, getHashrateOrder, parseOrderId} from "@/lib/hashrate";
 
 export default async function HashrateOrderPage({
@@ -11,6 +12,7 @@ export default async function HashrateOrderPage({
   const ordinal = parseOrderId(id);
   if (ordinal == null) notFound();
   const order = getHashrateOrder(ordinal);
+  const quote = await quoteUsdCentsInSats(order.priceCents).catch(() => null);
 
   const rows = [
     ["Algorithm", "SHA-256"],
@@ -86,8 +88,13 @@ export default async function HashrateOrderPage({
               <span className="font-[family-name:var(--font-mono)] text-[9px] text-white/30">
                 LEASE VALUE
               </span>
-              <span className="font-[family-name:var(--font-display)] text-3xl font-750 text-[#e6a06e]">
-                {formatUsd(order.priceCents)}
+              <span className="text-right">
+                <span className="block font-[family-name:var(--font-display)] text-3xl font-750 text-[#e6a06e]">
+                  {quote ? `${quote.amountSats.toLocaleString()} sats` : "Quote pending"}
+                </span>
+                <span className="mt-1 block font-[family-name:var(--font-mono)] text-[9px] text-white/28">
+                  {formatUsd(order.priceCents)} REFERENCE
+                </span>
               </span>
             </div>
             <div className="mt-5 border-y border-white/10 py-4 font-[family-name:var(--font-mono)] text-[10px]">
@@ -97,7 +104,7 @@ export default async function HashrateOrderPage({
               </div>
               <div className="mt-3 flex justify-between gap-3">
                 <span className="text-white/28">SETTLEMENT</span>
-                <span className="text-white/45">LOCKED</span>
+                <span className="text-white/45">BTC LIGHTNING / LOCKED</span>
               </div>
             </div>
             <button
@@ -108,9 +115,9 @@ export default async function HashrateOrderPage({
               Awaiting verified supply
             </button>
             <p className="mt-4 text-[11px] leading-relaxed text-white/30">
-              No payment is accepted for an unattested contract. Sub-dollar orders
-              require Lightning settlement because they may fall below practical
-              Bitcoin mainnet output thresholds.
+              No payment is accepted for an unattested contract. All leases settle
+              in BTC sats over Lightning; USD is a 60-second pricing reference only.
+              Settlement proofs can be batch-anchored to Bitcoin mainnet.
             </p>
           </aside>
         </div>

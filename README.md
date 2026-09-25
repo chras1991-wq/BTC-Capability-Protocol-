@@ -15,8 +15,9 @@ accept payment until the operator binds:
 - signed share telemetry for the lease window;
 - a settlement rail appropriate for the amount.
 
-Sub-dollar orders require Lightning settlement. They are not suitable for
-individual Bitcoin mainnet outputs.
+All orders settle in BTC sats over Bitcoin Lightning. The USD values are pricing
+references only. Sub-dollar orders are not suitable for individual Bitcoin
+mainnet outputs; completed lease batches can be anchored to mainnet.
 
 ## App
 

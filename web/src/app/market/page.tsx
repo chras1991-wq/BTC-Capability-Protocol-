@@ -90,7 +90,7 @@ export default function MarketPage() {
               {[
                 ["CATALOG", "21,000"],
                 ["VERIFIED", "0"],
-                ["RANGE", "$0.20—20"],
+                ["SETTLE", "BTC / LN"],
               ].map(([label, value]) => (
                 <div key={label} className="border-b border-r border-white/10 p-4">
                   <dt className="text-[8px] tracking-wider text-white/25">{label}</dt>
@@ -207,9 +207,10 @@ export default function MarketPage() {
                 Execution gate
               </p>
               <p className="mt-2 max-w-3xl text-xs leading-relaxed text-white/45">
-                Catalog values are contract parameters, not claims of connected mining
-                inventory. Checkout remains locked until hashrate ownership, Stratum
-                control and telemetry signing are verified.
+                Values from $0.20–$20 are BTC/USD quote references. Orders settle
+                exclusively in sats over Bitcoin Lightning. Checkout remains locked
+                until hashrate ownership, Stratum control and telemetry signing are
+                verified.
               </p>
             </div>
             <span className="mt-4 font-[family-name:var(--font-mono)] text-[10px] text-white/30 md:mt-0">

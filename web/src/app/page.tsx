@@ -123,7 +123,7 @@ export default function HomePage() {
             {[
               ["Catalog", "21,000"],
               ["Verified", "0"],
-              ["Settlement", "Locked"],
+              ["Settlement", "BTC / LN"],
               ["Algorithm", "SHA-256"],
             ].map(([k, v]) => (
               <div key={k}>

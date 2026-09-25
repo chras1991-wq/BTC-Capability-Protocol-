@@ -42,9 +42,9 @@ export function ProtocolStatus() {
 
         <div className="mt-12 grid border-l border-t border-white/10 md:grid-cols-3">
           {[
-            ["Identity", "Privy", "LIVE"],
             ["Order compiler", "Deterministic HRC matrix", "LIVE"],
             ["Supply verifier", "Stratum challenge path", "RESEARCH"],
+            ["Settlement rail", "Bitcoin Lightning", "RESEARCH"],
           ].map(([layer, implementation, status]) => (
             <div
               key={layer}
