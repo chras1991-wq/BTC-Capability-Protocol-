@@ -12,7 +12,7 @@ export default function CapDetailPage() {
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const router = useRouter();
-  const { address, connect } = useWallet();
+  const { address, connect, getAccessToken } = useWallet();
   const [cap, setCap] = useState<Capability | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,10 +50,14 @@ export default function CapDetailPage() {
     setBusy(true);
     setError(null);
     try {
+      const accessToken = await getAccessToken();
       const rentSats = Math.round(parseFloat(rentBtc) * 1e8);
       const res = await fetch("/api/lease", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? {Authorization: `Bearer ${accessToken}`} : {}),
+        },
         body: JSON.stringify({
           action: "list",
           id: cap.id,
@@ -83,9 +87,13 @@ export default function CapDetailPage() {
     setBusy(true);
     setError(null);
     try {
+      const accessToken = await getAccessToken();
       const res = await fetch("/api/lease", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? {Authorization: `Bearer ${accessToken}`} : {}),
+        },
         body: JSON.stringify({
           action: "take",
           id: cap.id,
@@ -140,8 +148,23 @@ export default function CapDetailPage() {
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-[var(--ink-soft)]/55">Settlement</dt>
-          <dd>not active</dd>
+          <dd>{cap.paymentTxid ? "verified mainnet" : "legacy record"}</dd>
         </div>
+        {cap.paymentTxid && (
+          <div className="flex justify-between gap-4">
+            <dt className="text-[var(--ink-soft)]/55">Payment</dt>
+            <dd>
+              <a
+                href={`https://mempool.space/tx/${cap.paymentTxid}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[var(--copper-deep)] underline underline-offset-4"
+              >
+                {cap.paymentTxid.slice(0, 9)}…
+              </a>
+            </dd>
+          </div>
+        )}
         <div className="flex justify-between gap-4">
           <dt className="text-[var(--ink-soft)]/55">Owner</dt>
           <dd className="truncate max-w-[60%]">{cap.owner}</dd>

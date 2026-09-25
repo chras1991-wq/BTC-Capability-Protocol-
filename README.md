@@ -4,6 +4,13 @@
 
 Mint fee **0.00005 BTC** · Wallet mint cap **0.01 BTC** · Lease immediately after mint.
 
+Mainnet treasury:
+`bc1p6r2ve3qnwuyxen6pphzgkdwn8h8wdz8fyl4yd46duvgdnv3uq0dqjxrnwv`
+
+Issuance is enabled only when Privy server verification and durable Redis
+storage are both configured. Payments are verified against mempool.space and
+cannot be reused.
+
 ## App
 
 ```bash
@@ -25,6 +32,8 @@ npm run dev
 3. (Recommended) add Upstash Redis env:
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
+4. Add `PRIVY_APP_SECRET`
+5. Add `NEXT_PUBLIC_TREASURY_ADDRESS`
 4. Deploy
 
 Or CLI:

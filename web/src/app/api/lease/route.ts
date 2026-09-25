@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { listForLease, ProtocolError, takeLease } from "@/lib/store";
+import {requirePrivyUser} from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const listSchema = z.object({
   action: z.literal("list"),
   id: z.string().min(3),
-  owner: z.string().min(8),
   rentSats: z.number().int().positive(),
   tenorDays: z.number().int().positive().max(365),
   maxDrawdownBps: z.number().int().min(0).max(5000),
@@ -16,20 +16,20 @@ const listSchema = z.object({
 const takeSchema = z.object({
   action: z.literal("take"),
   id: z.string().min(3),
-  lessee: z.string().min(8),
 });
 
 export async function POST(req: Request) {
   try {
     const json = await req.json();
+    const userId = await requirePrivyUser(req);
     if (json.action === "list") {
       const body = listSchema.parse(json);
-      const cap = await listForLease(body);
+      const cap = await listForLease({...body, owner: userId});
       return NextResponse.json({ capability: cap });
     }
     if (json.action === "take") {
       const body = takeSchema.parse(json);
-      const cap = await takeLease(body);
+      const cap = await takeLease({...body, lessee: userId});
       return NextResponse.json({ capability: cap });
     }
     return NextResponse.json({ error: "unknown action" }, { status: 400 });

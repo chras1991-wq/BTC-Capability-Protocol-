@@ -5,6 +5,9 @@ export const WALLET_MINT_CAP_SATS = 1_000_000; // 0.01 BTC per wallet
 
 export const MINT_FEE_BTC = 0.00005;
 export const WALLET_MINT_CAP_BTC = 0.01;
+export const TREASURY_ADDRESS =
+  process.env.NEXT_PUBLIC_TREASURY_ADDRESS ??
+  "bc1p6r2ve3qnwuyxen6pphzgkdwn8h8wdz8fyl4yd46duvgdnv3uq0dqjxrnwv";
 
 export const CAPABILITY_TYPES = [
   { id: "ln", label: "Lightning" },

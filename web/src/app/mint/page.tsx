@@ -5,16 +5,24 @@ import { useRouter } from "next/navigation";
 import {
   CAPABILITY_TYPES,
   MINT_FEE_SATS,
+  TREASURY_ADDRESS,
   WALLET_MINT_CAP_SATS,
   formatBtc,
 } from "@/lib/protocol";
 import type { CapabilityTypeId } from "@/lib/protocol";
 import { useWallet } from "@/lib/wallet";
+import {useBitcoinWallet} from "@/lib/bitcoin-wallet";
 
 type WalletInfo = {
   mintedFeeSats: number;
   remainingFeeSats: number;
   remainingMints: number;
+};
+
+type RuntimeConfig = {
+  issuanceEnabled: boolean;
+  auth: boolean;
+  durableStore: boolean;
 };
 
 const POLICY: Record<CapabilityTypeId, string[]> = {
@@ -25,26 +33,47 @@ const POLICY: Record<CapabilityTypeId, string[]> = {
 };
 
 export default function MintPage() {
-  const { address, connect } = useWallet();
+  const {
+    address: identity,
+    authenticated,
+    connect,
+    getAccessToken,
+  } = useWallet();
+  const bitcoin = useBitcoinWallet();
   const router = useRouter();
   const [type, setType] = useState<CapabilityTypeId>("ln");
   const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [manual, setManual] = useState(false);
+  const [manualAddress, setManualAddress] = useState("");
+  const [paymentTxid, setPaymentTxid] = useState("");
+  const [runtime, setRuntime] = useState<RuntimeConfig | null>(null);
+
+  const payerAddress = bitcoin.address ?? manualAddress.trim();
 
   const refresh = useCallback(async () => {
-    if (!address) {
+    if (!payerAddress) {
       setWalletInfo(null);
       return;
     }
-    const res = await fetch(`/api/wallet/${encodeURIComponent(address)}`);
+    const res = await fetch(`/api/wallet/${encodeURIComponent(payerAddress)}`);
     const data = (await res.json()) as WalletInfo;
     setWalletInfo(data);
-  }, [address]);
+  }, [payerAddress]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    void fetch("/api/config", {cache: "no-store"})
+      .then((response) => response.json())
+      .then(setRuntime)
+      .catch(() =>
+        setRuntime({issuanceEnabled: false, auth: false, durableStore: false}),
+      );
+  }, []);
 
   const preview = useMemo(() => {
     const ops = POLICY[type];
@@ -56,22 +85,57 @@ export default function MintPage() {
   custody     none`;
   }, [type]);
 
-  async function onMint() {
-    if (!address) {
+  async function register(txid: string) {
+    if (!identity || !payerAddress) return;
+    const accessToken = await getAccessToken();
+    const res = await fetch("/api/caps", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? {Authorization: `Bearer ${accessToken}`} : {}),
+      },
+      body: JSON.stringify({
+        owner: identity,
+        payerAddress,
+        paymentTxid: txid,
+        type,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "issue failed");
+    router.push(`/cap/${data.capability.id}?lease=1`);
+  }
+
+  async function onIssue() {
+    if (!runtime?.issuanceEnabled) return;
+    if (!authenticated) {
       connect();
       return;
     }
+    if (!payerAddress) {
+      if (bitcoin.available) {
+        try {
+          await bitcoin.connect();
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "connection failed");
+        }
+      } else {
+        setManual(true);
+      }
+      return;
+    }
+
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/caps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ owner: address, type }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "issue failed");
-      router.push(`/cap/${data.capability.id}?lease=1`);
+      let txid = paymentTxid.trim();
+      if (!manual) {
+        txid = await bitcoin.payIssuance();
+        setPaymentTxid(txid);
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+      }
+      if (!txid) throw new Error("transaction id required");
+      await register(txid);
     } catch (e) {
       setError(e instanceof Error ? e.message : "issue failed");
     } finally {
@@ -147,20 +211,107 @@ export default function MintPage() {
           </p>
         )}
 
+        <div className="border border-[var(--line)] bg-white/35">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--line)] px-4 py-3">
+            <span className="font-[family-name:var(--font-mono)] text-[10px] tracking-wider text-[var(--ink-soft)]/50 uppercase">
+              Bitcoin settlement
+            </span>
+            <span className="font-[family-name:var(--font-mono)] text-[10px] text-[var(--sage)]">
+              MAINNET
+            </span>
+          </div>
+          <div className="space-y-3 p-4 font-[family-name:var(--font-mono)] text-xs">
+            <div className="flex justify-between gap-4">
+              <span className="text-[var(--ink-soft)]/50">Output</span>
+              <span>{MINT_FEE_SATS.toLocaleString()} sats</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-[var(--ink-soft)]/50">Treasury</span>
+              <span className="max-w-[70%] truncate">{TREASURY_ADDRESS}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-[var(--ink-soft)]/50">Signer</span>
+              <span>
+                {bitcoin.address
+                  ? `${bitcoin.kind} · ${bitcoin.address.slice(0, 8)}…`
+                  : manual
+                    ? "external"
+                    : "not connected"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {manual && (
+          <div className="space-y-4 border-l-2 border-[var(--copper)] pl-4">
+            <p className="text-sm leading-relaxed text-[var(--ink-soft)]/70">
+              Send exactly 5,000 sats to the treasury, then submit the
+              propagated mainnet transaction.
+            </p>
+            <label className="block">
+              <span className="font-[family-name:var(--font-mono)] text-[10px] text-[var(--ink-soft)]/50">
+                PAYER ADDRESS
+              </span>
+              <input
+                value={manualAddress}
+                onChange={(event) => setManualAddress(event.target.value)}
+                placeholder="bc1…"
+                className="mt-2 w-full border border-[var(--line)] bg-transparent px-3 py-2 font-[family-name:var(--font-mono)] text-xs"
+              />
+            </label>
+            <label className="block">
+              <span className="font-[family-name:var(--font-mono)] text-[10px] text-[var(--ink-soft)]/50">
+                PAYMENT TXID
+              </span>
+              <input
+                value={paymentTxid}
+                onChange={(event) => setPaymentTxid(event.target.value)}
+                placeholder="64-character transaction id"
+                className="mt-2 w-full border border-[var(--line)] bg-transparent px-3 py-2 font-[family-name:var(--font-mono)] text-xs"
+              />
+            </label>
+          </div>
+        )}
+
         <button
           type="button"
-          disabled={busy || capped}
-          onClick={() => void onMint()}
+          disabled={busy || capped || !runtime?.issuanceEnabled}
+          onClick={() => void onIssue()}
           className="w-full bg-[var(--ink)] py-3.5 text-sm font-600 text-[var(--mist)] transition hover:bg-[var(--ink-soft)] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {!address
-            ? "Connect wallet"
+          {!runtime?.issuanceEnabled
+            ? "Mainnet issuance activation pending"
+            : !authenticated
+            ? "Authenticate with Privy"
+            : !payerAddress
+              ? bitcoin.available
+                ? "Connect Bitcoin signer"
+                : "Use external Bitcoin wallet"
             : capped
               ? "Issuance quota exhausted"
               : busy
-                ? "Compiling…"
-                : "Sign & issue"}
+                ? "Verifying mainnet transaction…"
+                : manual
+                  ? "Verify payment & issue"
+                  : "Pay 5,000 sats & issue"}
         </button>
+
+        {runtime && !runtime.issuanceEnabled && (
+          <div className="grid grid-cols-2 gap-px bg-[var(--line)] font-[family-name:var(--font-mono)] text-[10px]">
+            <div className="bg-[var(--paper)] p-3">
+              <span className="text-[var(--ink-soft)]/45">PRIVY VERIFY</span>
+              <span className={`ml-2 ${runtime.auth ? "text-[var(--sage)]" : "text-[var(--copper-deep)]"}`}>
+                {runtime.auth ? "READY" : "PENDING"}
+              </span>
+            </div>
+            <div className="bg-[var(--paper)] p-3">
+              <span className="text-[var(--ink-soft)]/45">DURABLE STORE</span>
+              <span className={`ml-2 ${runtime.durableStore ? "text-[var(--sage)]" : "text-[var(--copper-deep)]"}`}>
+                {runtime.durableStore ? "READY" : "PENDING"}
+              </span>
+            </div>
+          </div>
+        )}
 
         <p className="font-[family-name:var(--font-mono)] text-[11px] text-[var(--ink-soft)]/40">
           issuance_cost {formatBtc(MINT_FEE_SATS)} · epoch_quota{" "}

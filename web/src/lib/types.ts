@@ -8,6 +8,8 @@ export interface Capability {
   type: CapabilityTypeId;
   mintedAt: number;
   mintFeeSats: number;
+  paymentTxid?: string;
+  payerAddress?: string;
   /** Lease terms — set on list */
   rentSats?: number;
   tenorDays?: number;
@@ -32,6 +34,8 @@ export interface RootStore {
   caps: Capability[];
   /** address → cumulative mint fees paid (sats) */
   walletFees: Record<string, number>;
+  /** mainnet payment txids already consumed by an issuance */
+  usedTxids: string[];
 }
 
 export function typeLabel(id: CapabilityTypeId): string {

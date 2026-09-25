@@ -7,7 +7,15 @@ const REDIS_KEY = "root:store:v1";
 type MemorySlot = { data: RootStore };
 
 function emptyStore(): RootStore {
-  return { caps: [], walletFees: {} };
+  return { caps: [], walletFees: {}, usedTxids: [] };
+}
+
+function normalizeStore(data: RootStore): RootStore {
+  return {
+    caps: data.caps ?? [],
+    walletFees: data.walletFees ?? {},
+    usedTxids: data.usedTxids ?? [],
+  };
 }
 
 function memory(): MemorySlot {
@@ -16,7 +24,7 @@ function memory(): MemorySlot {
   return g[MEMORY_KEY];
 }
 
-function redisConfigured(): boolean {
+export function redisConfigured(): boolean {
   return Boolean(
     process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
   );
@@ -35,7 +43,7 @@ async function redisGet(): Promise<RootStore | null> {
   const json = (await res.json()) as { result?: string | null };
   if (!json.result) return null;
   try {
-    return JSON.parse(json.result) as RootStore;
+    return normalizeStore(JSON.parse(json.result) as RootStore);
   } catch {
     return null;
   }
@@ -85,7 +93,7 @@ export async function getStore(): Promise<RootStore> {
       const path = await import("path");
       const file = path.join(process.cwd(), ".data", "store.json");
       const raw = await fs.readFile(file, "utf8");
-      memory().data = JSON.parse(raw) as RootStore;
+      memory().data = normalizeStore(JSON.parse(raw) as RootStore);
     } catch {
       /* no local file */
     }
@@ -118,6 +126,8 @@ export class ProtocolError extends Error {
 
 export async function mintCapability(input: {
   owner: string;
+  payerAddress: string;
+  paymentTxid: string;
   type: Capability["type"];
   id: string;
 }): Promise<Capability> {
@@ -125,13 +135,17 @@ export async function mintCapability(input: {
   if (!owner) throw new ProtocolError("wallet required");
 
   const store = await getStore();
-  const key = owner.toLowerCase();
+  const key = input.payerAddress.toLowerCase();
   const spent = store.walletFees[key] ?? 0;
   const fee = MINT_FEE_SATS;
   const capLimit = WALLET_MINT_CAP_SATS;
 
   if (spent + fee > capLimit) {
     throw new ProtocolError("wallet mint cap reached (0.01 BTC)");
+  }
+  const txid = input.paymentTxid.toLowerCase();
+  if (store.usedTxids.includes(txid)) {
+    throw new ProtocolError("payment transaction already consumed", 409);
   }
 
   const capability: Capability = {
@@ -140,12 +154,15 @@ export async function mintCapability(input: {
     type: input.type,
     mintedAt: Date.now(),
     mintFeeSats: fee,
+    paymentTxid: txid,
+    payerAddress: input.payerAddress,
     status: "ready",
   };
 
   const next: RootStore = {
     caps: [capability, ...store.caps],
     walletFees: { ...store.walletFees, [key]: spent + fee },
+    usedTxids: [...store.usedTxids, txid],
   };
   await saveStore(next);
   return capability;

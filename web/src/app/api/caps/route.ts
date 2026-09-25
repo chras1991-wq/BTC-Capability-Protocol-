@@ -4,11 +4,14 @@ import { z } from "zod";
 import { CAPABILITY_TYPES } from "@/lib/protocol";
 import { listCaps, mintCapability, ProtocolError, walletMintedFee } from "@/lib/store";
 import { MINT_FEE_SATS, WALLET_MINT_CAP_SATS } from "@/lib/protocol";
+import {verifyIssuancePayment} from "@/lib/bitcoin";
+import {requirePrivyUser} from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const mintSchema = z.object({
-  owner: z.string().min(8).max(128),
+  payerAddress: z.string().min(14).max(128),
+  paymentTxid: z.string().regex(/^[0-9a-f]{64}$/i),
   type: z.enum(
     CAPABILITY_TYPES.map((t) => t.id) as [
       (typeof CAPABILITY_TYPES)[number]["id"],
@@ -34,7 +37,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = mintSchema.parse(await req.json());
-    const spent = await walletMintedFee(body.owner);
+    const owner = await requirePrivyUser(req);
+    const spent = await walletMintedFee(body.payerAddress);
     const fee = MINT_FEE_SATS;
     const max = WALLET_MINT_CAP_SATS;
     if (spent + fee > max) {
@@ -44,8 +48,15 @@ export async function POST(req: Request) {
       );
     }
 
+    await verifyIssuancePayment({
+      txid: body.paymentTxid,
+      payerAddress: body.payerAddress,
+    });
+
     const cap = await mintCapability({
-      owner: body.owner,
+      owner,
+      payerAddress: body.payerAddress,
+      paymentTxid: body.paymentTxid,
       type: body.type,
       id: `cap_${nanoid(10)}`,
     });
@@ -54,7 +65,7 @@ export async function POST(req: Request) {
       capability: cap,
       mintFeeSats: fee,
       wallet: {
-        address: body.owner,
+        address: body.payerAddress,
         mintedFeeSats: spent + fee,
         remainingFeeSats: max - spent - fee,
         maxFeeSats: max,
