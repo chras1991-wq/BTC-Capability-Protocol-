@@ -1,15 +1,22 @@
-# ROOT
+# ROOT Hashrate Market
 
-**Own the Bitcoin. Rent the power.**
+**Route the work. Verify every share.**
 
-Mint fee **0.00005 BTC** · Wallet mint cap **0.01 BTC** · Lease immediately after mint.
+ROOT exposes 21,000 deterministic SHA-256 lease specifications priced from
+**$0.20 to $20.00**. Every order has a distinct compute amount, execution
+window, route policy, region profile, efficiency ceiling, telemetry mode and
+accounting policy.
 
-Mainnet treasury:
-`bc1p6r2ve3qnwuyxen6pphzgkdwn8h8wdz8fyl4yd46duvgdnv3uq0dqjxrnwv`
+The catalog is not presented as connected mining inventory. An order cannot
+accept payment until the operator binds:
 
-Issuance is enabled only when Privy server verification and durable Redis
-storage are both configured. Payments are verified against mempool.space and
-cannot be reused.
+- control of the advertised Stratum endpoint;
+- sufficient measured SHA-256 capacity;
+- signed share telemetry for the lease window;
+- a settlement rail appropriate for the amount.
+
+Sub-dollar orders require Lightning settlement. They are not suitable for
+individual Bitcoin mainnet outputs.
 
 ## App
 
@@ -20,21 +27,22 @@ npm run dev
 ```
 
 - `/` — home
-- `/mint` — mint capability
-- `/market` — lease market
-- `/me` — vault
-- `/cap/[id]` — detail + lease now
+- `/market` — filterable 21,000-order contract matrix
+- `/order/[id]` — complete lease specification and execution gate
+- `/mint` — redirects to the market
+- `/me` — authenticated account
+- `/api/hashrate/orders` — paginated deterministic catalog
 
 ## Deploy (Vercel)
 
 1. Import this GitHub repo in Vercel
 2. Set **Root Directory** to `web`
-3. (Recommended) add Upstash Redis env:
+3. Add Upstash Redis env for durable claims:
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
 4. Add `PRIVY_APP_SECRET`
-5. Add `NEXT_PUBLIC_TREASURY_ADDRESS`
-4. Deploy
+5. Add the operator hashrate provider and Lightning settlement credentials
+6. Deploy
 
 Or CLI:
 
@@ -43,9 +51,18 @@ cd web
 npx vercel --prod
 ```
 
-## Protocol knobs
+## Catalog model
 
-See `web/src/lib/protocol.ts`:
+See `web/src/lib/hashrate.ts`:
 
-- `MINT_FEE_SATS = 5000` (0.00005 BTC)
-- `WALLET_MINT_CAP_SATS = 1000000` (0.01 BTC)
+- fixed size: 21,000 order specifications;
+- lease values: $0.20–$20.00;
+- algorithm: SHA-256;
+- functions: FPPS, PPS, solo, failover and benchmark routes;
+- durations: 10 minutes through 24 hours;
+- deterministic IDs: `HRC-00001` through `HRC-21000`.
+
+Checkout is intentionally locked in this repository until a real operator
+supply adapter and Lightning payment backend are configured. The previous
+fixed-fee capability mint API remains only for legacy records and is no longer
+linked from the product UI.

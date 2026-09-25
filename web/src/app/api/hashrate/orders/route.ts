@@ -24,6 +24,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ...result,
     catalogSize: 21_000,
+    origin: "operator",
     inventoryState: "specification-only",
     executionEnabled: false,
   });

@@ -54,6 +54,7 @@ export type HashrateOrderStatus = "awaiting-attestation" | "verified" | "leased"
 export interface HashrateOrder {
   id: string;
   ordinal: number;
+  origin: "operator";
   priceCents: number;
   hashrateTh: number;
   durationMinutes: number;
@@ -124,6 +125,7 @@ export function getHashrateOrder(ordinal: number): HashrateOrder {
   return {
     id: orderId(ordinal),
     ordinal,
+    origin: "operator",
     priceCents,
     hashrateTh: 1 + positiveMod(index * 17 + lot * 11, 250),
     durationMinutes: duration.minutes,

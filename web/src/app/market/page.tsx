@@ -81,9 +81,9 @@ export default function MarketPage() {
                 Hashrate, routed by contract.
               </h1>
               <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/48 md:text-base">
-                21,000 deterministic lease specifications spanning route, duration,
-                telemetry and settlement policy. Execution opens only after a miner
-                binds signed supply proof.
+                21,000 operator-generated lease specifications spanning route,
+                duration, telemetry and settlement policy. Execution opens only
+                after the supplied miners bind signed capacity proof.
               </p>
             </div>
             <dl className="grid min-w-[310px] grid-cols-3 border-l border-t border-white/10 font-[family-name:var(--font-mono)]">
