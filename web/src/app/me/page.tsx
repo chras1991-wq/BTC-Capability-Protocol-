@@ -31,17 +31,17 @@ export default function MePage() {
     return (
       <main className="mx-auto w-full max-w-xl flex-1 px-5 py-16 text-center">
         <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--copper)] uppercase">
-          Custody
+          Identity
         </p>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-700">
-          Vault
+          Account
         </h1>
         <button
           type="button"
           onClick={connect}
           className="mt-8 bg-[var(--ink)] px-5 py-3 text-sm text-[var(--mist)]"
         >
-          Connect wallet
+          Sign in
         </button>
       </main>
     );
@@ -52,26 +52,26 @@ export default function MePage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--copper)] uppercase">
-            Custody
+            Identity
           </p>
           <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-700">
-            Vault
+            Account
           </h1>
           <p className="mt-3 font-[family-name:var(--font-mono)] text-xs text-[var(--ink-soft)]/55 break-all">
             {address}
           </p>
         </div>
         <Link
-          href="/mint"
+          href="/market"
           className="bg-[var(--ink)] px-4 py-2 text-sm text-[var(--mist)]"
         >
-          Issue
+          Browse market
         </Link>
       </div>
 
       <dl className="mt-8 grid grid-cols-3 gap-4 border-t border-[var(--line)] pt-6 font-[family-name:var(--font-mono)] text-sm">
         <div>
-          <dt className="text-[11px] text-[var(--ink-soft)]/50">Caps</dt>
+          <dt className="text-[11px] text-[var(--ink-soft)]/50">Legacy caps</dt>
           <dd className="mt-1 text-lg">{caps.length}</dd>
         </div>
         <div>

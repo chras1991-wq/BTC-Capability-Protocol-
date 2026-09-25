@@ -1,45 +1,26 @@
-"use client";
-
-import {useEffect, useState} from "react";
-
-type Stats = {
-  minted: number;
-  listed: number;
-  leased: number;
-};
-
 export function ProtocolStatus() {
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  useEffect(() => {
-    void fetch("/api/stats", {cache: "no-store"})
-      .then((response) => response.json())
-      .then(setStats)
-      .catch(() => setStats(null));
-  }, []);
-
   return (
     <section className="border-t border-white/10 bg-[#0b0d10] px-5 py-14 text-[#e9ecef] md:px-10 md:py-20">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.5fr]">
           <div>
             <p className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.24em] text-[#da8247] uppercase">
-              Deployment state / 01
+              Market state / 01
             </p>
             <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl font-700">
-              What exists now.
+              Contract matrix.
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/45">
-              No synthetic TVL. No generated yield. Registry counters below
-              come from this deployment.
+              Deterministic order specifications are live. Executable inventory
+              stays at zero until miners prove control of the advertised supply.
             </p>
           </div>
 
           <div className="grid border-l border-t border-white/10 sm:grid-cols-3">
             {[
-              ["CAP records", stats?.minted ?? "—"],
-              ["Open intents", stats?.listed ?? "—"],
-              ["Bound records", stats?.leased ?? "—"],
+              ["Order specs", "21,000"],
+              ["Verified supply", "0"],
+              ["Settled leases", "0"],
             ].map(([label, value], index) => (
               <div
                 key={label}
@@ -62,8 +43,8 @@ export function ProtocolStatus() {
         <div className="mt-12 grid border-l border-t border-white/10 md:grid-cols-3">
           {[
             ["Identity", "Privy", "LIVE"],
-            ["Capability registry", "Off-chain alpha", "LIVE"],
-            ["Bitcoin enforcement", "PSBT / covenant path", "RESEARCH"],
+            ["Order compiler", "Deterministic HRC matrix", "LIVE"],
+            ["Supply verifier", "Stratum challenge path", "RESEARCH"],
           ].map(([layer, implementation, status]) => (
             <div
               key={layer}
