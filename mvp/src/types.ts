@@ -73,7 +73,7 @@ export function compileLnVaultPolicy(
     {
       name: "cap_ln_exercise",
       keys: [cap.holderPk, enforcerPk],
-      constraint: `MuSig2; funding outputs ⊆ LN templates; residual ≥ ${vault.value - cap.maxDrawdown}n sats to vault`,
+      constraint: `MuSig2; funding outputs ⊆ LN templates; residual ≥ ${vault.value - cap.maxDrawdown} sats to vault`,
     },
     {
       name: "cooperative_close",
