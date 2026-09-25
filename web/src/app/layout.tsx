@@ -23,9 +23,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ROOT — Bitcoin Capability Layer",
+  title: "ROOT — Bitcoin Hashrate Market",
   description:
-    "Bitcoin capability protocol research and an off-chain intent registry.",
+    "Operator-generated SHA-256 lease specifications with Stratum routing and share telemetry constraints.",
   icons: { icon: "/icon.svg" },
 };
 
