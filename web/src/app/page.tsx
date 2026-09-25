@@ -9,30 +9,30 @@ export default function HomePage() {
         <HeroVisual />
         <div className="relative z-10 flex min-h-[100svh] flex-col justify-end px-5 pb-14 pt-28 md:px-10 md:pb-16 lg:max-w-[52%] lg:justify-center lg:pb-0">
           <p className="animate-rise font-[family-name:var(--font-mono)] text-[11px] tracking-[0.22em] text-[var(--copper-bright)] uppercase">
-            Bitcoin Capability Layer
+            Bitcoin Execution Rights Protocol
           </p>
           <p className="animate-rise mt-3 font-[family-name:var(--font-display)] text-[clamp(4.2rem,13vw,8.5rem)] font-800 leading-[0.85] tracking-[-0.04em] text-[var(--mist)]">
             ROOT
           </p>
           <h1 className="animate-rise-delay-1 mt-5 max-w-md font-[family-name:var(--font-display)] text-[clamp(1.45rem,3vw,2.1rem)] font-600 leading-tight text-[var(--mist)]">
-            Own the Bitcoin. Rent the power.
+            Own the infrastructure. Lease the execution.
           </h1>
           <p className="animate-rise-delay-2 mt-6 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/60 md:text-[13px]">
-            <span className="block">Privy identity · capability registry · policy intents</span>
-            <span className="mt-1 block">Bitcoin enforcement path under active research</span>
+            <span className="block">Bounded authority · policy routing · signed telemetry</span>
+            <span className="mt-1 block">21,000 deterministic capability contracts</span>
           </p>
           <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
             <Link
-              href="/mint"
+              href="/market"
               className="bg-[var(--copper)] px-5 py-3 text-sm font-600 text-[var(--mist)] transition hover:bg-[var(--copper-bright)]"
             >
-              Issue capability
+              Explore execution rights
             </Link>
             <Link
               href="/market"
               className="border border-[var(--mist)]/30 px-5 py-3 text-sm text-[var(--mist)] transition hover:border-[var(--mist)]"
             >
-              Capability market
+              Order matrix
             </Link>
           </div>
         </div>
@@ -44,24 +44,25 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
           <div>
             <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--copper-bright)] uppercase">
-              Primitive
+              Primitive / HRC
             </p>
             <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl font-700 md:text-3xl">
-              UTXO Capability
+              Execution capability
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[var(--mist)]/55">
-              Proposed narrow spend authority over a Taproot vault. This is the
-              protocol target—not a deployed Bitcoin covenant.
+              Time-bounded SHA-256 execution authority with explicit routing,
+              accounting and telemetry constraints.
             </p>
           </div>
           <pre className="overflow-x-auto border border-[var(--mist)]/12 bg-[#0c0f13] p-5 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/80 md:text-[13px]">
-{`Vault(v, O)
-├─ own      → O  (CSV recovery)
-├─ cap[Π]   → H  (MuSig2 · enforcer)
-│   residual ≥ v − δ
-└─ seal     → single-use · transferable
+{`Right(C, T, Π)
+├─ owner     → infrastructure operator
+├─ delegate  → bounded execution authority
+├─ route     → declared work endpoint
+├─ attest    → signed capacity stream
+└─ expire    → deterministic cutoff
 
-Π ∈ { ln_open, mm_swap, collateral, option }`}
+Π := { C, T, domain, latency, energy }`}
           </pre>
         </div>
       </section>
@@ -69,24 +70,24 @@ export default function HomePage() {
       <section className="border-t border-[var(--line)] px-5 py-16 md:px-10 md:py-20">
         <div className="mx-auto max-w-5xl">
           <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--copper)] uppercase">
-            Stack
+              Verification stack
           </p>
           <div className="mt-8 grid gap-0 border-t border-[var(--line)] md:grid-cols-3">
             {[
               {
-                v: "V1",
-                t: "Interactive covenant",
-                d: "Presigned DAG · adaptor · DLC · client-side seals",
+                v: "01",
+                t: "Capacity attestation",
+                d: "Operator identity · route challenge · signed capacity profile",
               },
               {
-                v: "V2",
-                t: "BitVM / BitVMX",
-                d: "Optimistic challenge · drawdown monitors · allowlists",
+                v: "02",
+                t: "Execution telemetry",
+                d: "Work admission · proof stream · rolling capacity EMA",
               },
               {
-                v: "V3",
-                t: "Native CCV",
-                d: "State-carrying UTXO · BIP-443 class enforcement",
+                v: "03",
+                t: "Lease settlement",
+                d: "Window proof · route policy · Bitcoin mainnet payment",
               },
             ].map((row) => (
               <article
@@ -112,18 +113,18 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--sage)] uppercase">
-              Constraint
+              Market integrity
             </p>
             <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-700">
-              Truth before throughput.
+              Supply before settlement.
             </h2>
           </div>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-3 font-[family-name:var(--font-mono)] text-sm sm:grid-cols-4">
             {[
-              ["Identity", "Privy"],
-              ["Registry", "Alpha"],
-              ["Settlement", "None"],
-              ["Custody", "None"],
+              ["Catalog", "21,000"],
+              ["Verified", "0"],
+              ["Settlement", "BTC L1"],
+              ["Algorithm", "SHA-256"],
             ].map(([k, v]) => (
               <div key={k}>
                 <dt className="text-[11px] text-[var(--ink-soft)]/50">{k}</dt>

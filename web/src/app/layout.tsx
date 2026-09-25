@@ -23,9 +23,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ROOT — Bitcoin Capability Layer",
+  title: "ROOT — Bitcoin Execution Rights",
   description:
-    "Bitcoin capability protocol research and an off-chain intent registry.",
+    "A Bitcoin capability market for bounded, verifiable execution rights.",
   icons: { icon: "/icon.svg" },
 };
 

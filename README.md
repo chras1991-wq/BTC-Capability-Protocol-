@@ -1,15 +1,22 @@
-# ROOT
+# ROOT — Bitcoin Execution Rights
 
-**Own the Bitcoin. Rent the power.**
+**Own the infrastructure. Lease the execution.**
 
-Mint fee **0.00005 BTC** · Wallet mint cap **0.01 BTC** · Lease immediately after mint.
+ROOT separates infrastructure ownership from narrow execution authority. It
+exposes 21,000 deterministic Bitcoin capability contracts priced from **$5.00
+to $20.00**. Every contract has a distinct bandwidth, execution window, route
+policy, domain, energy envelope, telemetry mode and accounting policy.
 
-Mainnet treasury:
-`bc1p6r2ve3qnwuyxen6pphzgkdwn8h8wdz8fyl4yd46duvgdnv3uq0dqjxrnwv`
+An execution right cannot accept payment until the operator binds:
 
-Issuance is enabled only when Privy server verification and durable Redis
-storage are both configured. Payments are verified against mempool.space and
-cannot be reused.
+- control of the declared work endpoint;
+- sufficient measured execution capacity;
+- signed capacity telemetry for the contract window;
+- a Bitcoin mainnet settlement address.
+
+All orders settle directly in BTC sats on Bitcoin mainnet. The USD values are
+60-second pricing references only, and every order uses a minimum 5,000-sat
+output to remain practical on mainnet.
 
 ## App
 
@@ -20,21 +27,22 @@ npm run dev
 ```
 
 - `/` — home
-- `/mint` — mint capability
-- `/market` — lease market
-- `/me` — vault
-- `/cap/[id]` — detail + lease now
+- `/market` — filterable 21,000-order contract matrix
+- `/order/[id]` — complete lease specification and execution gate
+- `/mint` — redirects to the market
+- `/me` — authenticated account
+- `/api/execution/orders` — paginated deterministic catalog
 
 ## Deploy (Vercel)
 
 1. Import this GitHub repo in Vercel
 2. Set **Root Directory** to `web`
-3. (Recommended) add Upstash Redis env:
+3. Add Upstash Redis env for durable claims:
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
 4. Add `PRIVY_APP_SECRET`
-5. Add `NEXT_PUBLIC_TREASURY_ADDRESS`
-4. Deploy
+5. Add the execution-capacity provider credentials
+6. Deploy
 
 Or CLI:
 
@@ -43,9 +51,18 @@ cd web
 npx vercel --prod
 ```
 
-## Protocol knobs
+## Catalog model
 
-See `web/src/lib/protocol.ts`:
+See `web/src/lib/execution.ts`:
 
-- `MINT_FEE_SATS = 5000` (0.00005 BTC)
-- `WALLET_MINT_CAP_SATS = 1000000` (0.01 BTC)
+- fixed size: 21,000 order specifications;
+- lease values: $5.00–$20.00;
+- algorithm: SHA-256;
+- classes: priority, dedicated, burst, continuity and proof windows;
+- durations: 10 minutes through 24 hours;
+- deterministic IDs: `ROOT-00001` through `ROOT-21000`.
+
+Checkout is intentionally locked until the operator capacity adapter is
+configured. Settlement uses Bitcoin mainnet only. The previous
+fixed-fee capability mint API remains only for legacy records and is no longer
+linked from the product UI.

@@ -103,7 +103,7 @@ export function HeroVisual() {
             fontFamily="monospace"
             letterSpacing="1.4"
           >
-            POLICY ROOT
+            CAPABILITY ROUTER
           </text>
           <text
             x="578"
@@ -113,7 +113,7 @@ export function HeroVisual() {
             fontSize="8"
             fontFamily="monospace"
           >
-            DESIGN TARGET / 01
+            CAPACITY PROOF / 01
           </text>
         </g>
       </svg>
