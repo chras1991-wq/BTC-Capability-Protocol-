@@ -1,0 +1,15 @@
+{
+  "name": "@root/mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "demo": "npx tsx src/demo.ts",
+    "test": "npx tsx src/bcr.test.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
