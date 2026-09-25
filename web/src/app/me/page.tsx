@@ -1,41 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CapCard } from "@/components/CapCard";
 import type { Capability } from "@/lib/types";
-import { MINT_FEE_SATS, WALLET_MINT_CAP_SATS } from "@/lib/protocol";
 import { useWallet } from "@/lib/wallet";
 
 export default function MePage() {
   const { address, connect } = useWallet();
   const [caps, setCaps] = useState<Capability[]>([]);
-  const [spent, setSpent] = useState(0);
-  const [loading, setLoading] = useState(false);
-
-  const load = useCallback(async () => {
-    if (!address) {
-      setCaps([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const [capsRes, walletRes] = await Promise.all([
-        fetch(`/api/caps?owner=${encodeURIComponent(address)}`),
-        fetch(`/api/wallet/${encodeURIComponent(address)}`),
-      ]);
-      const capsData = await capsRes.json();
-      const walletData = await walletRes.json();
-      setCaps(capsData.caps ?? []);
-      setSpent(walletData.mintedFeeSats ?? 0);
-    } finally {
-      setLoading(false);
-    }
-  }, [address]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (!address) return;
+    let cancelled = false;
+    void fetch(`/api/caps?owner=${encodeURIComponent(address)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled) setCaps(data.caps ?? []);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [address]);
 
   if (!address) {
     return (
@@ -56,9 +46,6 @@ export default function MePage() {
       </main>
     );
   }
-
-  const issued = Math.floor(spent / MINT_FEE_SATS);
-  const quota = Math.floor(WALLET_MINT_CAP_SATS / MINT_FEE_SATS);
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 md:px-8 md:py-14">
@@ -88,10 +75,8 @@ export default function MePage() {
           <dd className="mt-1 text-lg">{caps.length}</dd>
         </div>
         <div>
-          <dt className="text-[11px] text-[var(--ink-soft)]/50">Issued</dt>
-          <dd className="mt-1 text-lg">
-            {issued}/{quota}
-          </dd>
+          <dt className="text-[11px] text-[var(--ink-soft)]/50">Listed</dt>
+          <dd className="mt-1 text-lg">{caps.filter((c) => c.status === "listed").length}</dd>
         </div>
         <div>
           <dt className="text-[11px] text-[var(--ink-soft)]/50">Live</dt>

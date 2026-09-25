@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Capability } from "@/lib/types";
@@ -23,24 +23,24 @@ export default function CapDetailPage() {
 
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/caps/${encodeURIComponent(params.id)}`);
-      if (!res.ok) {
-        setCap(null);
-        return;
-      }
-      const data = await res.json();
-      setCap(data.capability ?? null);
-    } finally {
-      setLoading(false);
-    }
-  }, [params.id]);
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    void fetch(`/api/caps/${encodeURIComponent(params.id)}`)
+      .then(async (response) => {
+        if (!response.ok) return null;
+        const data = await response.json();
+        return (data.capability ?? null) as Capability | null;
+      })
+      .then((capability) => {
+        if (!cancelled) setCap(capability);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
 
   const isOwner =
     !!address && !!cap && address.toLowerCase() === cap.owner.toLowerCase();

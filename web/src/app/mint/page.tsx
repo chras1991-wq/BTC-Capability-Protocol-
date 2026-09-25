@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CAPABILITY_TYPES,
@@ -12,6 +12,7 @@ import {
 import type { CapabilityTypeId } from "@/lib/protocol";
 import { useWallet } from "@/lib/wallet";
 import {useBitcoinWallet} from "@/lib/bitcoin-wallet";
+import {BitcoinWalletModal} from "@/components/BitcoinWalletModal";
 
 type WalletInfo = {
   mintedFeeSats: number;
@@ -49,22 +50,25 @@ export default function MintPage() {
   const [manualAddress, setManualAddress] = useState("");
   const [paymentTxid, setPaymentTxid] = useState("");
   const [runtime, setRuntime] = useState<RuntimeConfig | null>(null);
+  const [walletModal, setWalletModal] = useState(false);
+  const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
 
   const payerAddress = bitcoin.address ?? manualAddress.trim();
 
-  const refresh = useCallback(async () => {
+  useEffect(() => {
     if (!payerAddress) {
-      setWalletInfo(null);
       return;
     }
-    const res = await fetch(`/api/wallet/${encodeURIComponent(payerAddress)}`);
-    const data = (await res.json()) as WalletInfo;
-    setWalletInfo(data);
+    let cancelled = false;
+    void fetch(`/api/wallet/${encodeURIComponent(payerAddress)}`)
+      .then((response) => response.json() as Promise<WalletInfo>)
+      .then((data) => {
+        if (!cancelled) setWalletInfo(data);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [payerAddress]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   useEffect(() => {
     void fetch("/api/config", {cache: "no-store"})
@@ -113,15 +117,11 @@ export default function MintPage() {
       return;
     }
     if (!payerAddress) {
-      if (bitcoin.available) {
-        try {
-          await bitcoin.connect();
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "connection failed");
-        }
-      } else {
-        setManual(true);
-      }
+      setWalletModal(true);
+      return;
+    }
+    if (bitcoin.address && !bitcoin.nativePayment && !manual) {
+      setManual(true);
       return;
     }
 
@@ -148,6 +148,24 @@ export default function MintPage() {
     ? Math.floor(walletInfo.mintedFeeSats / MINT_FEE_SATS)
     : 0;
   const quota = Math.floor(WALLET_MINT_CAP_SATS / MINT_FEE_SATS);
+  const paymentUri = `bitcoin:${TREASURY_ADDRESS}?amount=0.00005`;
+
+  async function connectBitcoin(walletId: string) {
+    setConnectingWallet(walletId);
+    setError(null);
+    try {
+      await bitcoin.connect(walletId);
+      setWalletModal(false);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Wallet unavailable. Install it or use external payment.",
+      );
+    } finally {
+      setConnectingWallet(null);
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 md:px-8 md:py-14">
@@ -233,13 +251,22 @@ export default function MintPage() {
               <span className="text-[var(--ink-soft)]/50">Signer</span>
               <span>
                 {bitcoin.address
-                  ? `${bitcoin.kind} · ${bitcoin.address.slice(0, 8)}…`
+                  ? `${bitcoin.name} · ${bitcoin.address.slice(0, 8)}…`
                   : manual
                     ? "external"
                     : "not connected"}
               </span>
             </div>
           </div>
+          {!bitcoin.address && !manual && (
+            <button
+              type="button"
+              onClick={() => setWalletModal(true)}
+              className="w-full border-t border-[var(--line)] px-4 py-3 text-left font-[family-name:var(--font-mono)] text-[10px] tracking-wider text-[var(--copper-deep)] uppercase transition hover:bg-black/[0.03]"
+            >
+              Select Bitcoin wallet →
+            </button>
+          )}
         </div>
 
         {manual && (
@@ -248,6 +275,12 @@ export default function MintPage() {
               Send exactly 5,000 sats to the treasury, then submit the
               propagated mainnet transaction.
             </p>
+            <a
+              href={paymentUri}
+              className="inline-flex border border-[var(--copper)] px-3 py-2 font-[family-name:var(--font-mono)] text-[10px] tracking-wider text-[var(--copper-deep)] uppercase"
+            >
+              Open BIP-21 payment
+            </a>
             <label className="block">
               <span className="font-[family-name:var(--font-mono)] text-[10px] text-[var(--ink-soft)]/50">
                 PAYER ADDRESS
@@ -284,9 +317,7 @@ export default function MintPage() {
             : !authenticated
             ? "Authenticate with Privy"
             : !payerAddress
-              ? bitcoin.available
-                ? "Connect Bitcoin signer"
-                : "Use external Bitcoin wallet"
+              ? "Select Bitcoin signer"
             : capped
               ? "Issuance quota exhausted"
               : busy
@@ -318,6 +349,19 @@ export default function MintPage() {
           {formatBtc(WALLET_MINT_CAP_SATS)}
         </p>
       </div>
+
+      <BitcoinWalletModal
+        open={walletModal}
+        wallets={bitcoin.wallets}
+        busy={connectingWallet}
+        error={error}
+        onClose={() => setWalletModal(false)}
+        onSelect={(id) => void connectBitcoin(id)}
+        onExternal={() => {
+          setManual(true);
+          setWalletModal(false);
+        }}
+      />
     </main>
   );
 }
