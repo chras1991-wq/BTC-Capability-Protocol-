@@ -44,7 +44,7 @@ export function ProtocolStatus() {
           {[
             ["Order compiler", "Deterministic HRC matrix", "LIVE"],
             ["Supply verifier", "Stratum challenge path", "RESEARCH"],
-            ["Settlement rail", "Bitcoin Lightning", "RESEARCH"],
+            ["Settlement rail", "Bitcoin mainnet", "GATED"],
           ].map(([layer, implementation, status]) => (
             <div
               key={layer}

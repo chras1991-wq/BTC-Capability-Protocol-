@@ -90,7 +90,7 @@ export default function MarketPage() {
               {[
                 ["CATALOG", "21,000"],
                 ["VERIFIED", "0"],
-                ["SETTLE", "BTC / LN"],
+                ["SETTLE", "BTC L1"],
               ].map(([label, value]) => (
                 <div key={label} className="border-b border-r border-white/10 p-4">
                   <dt className="text-[8px] tracking-wider text-white/25">{label}</dt>
@@ -146,9 +146,9 @@ export default function MarketPage() {
             className="h-10 border border-white/10 bg-[#0e1115] px-3 font-[family-name:var(--font-mono)] text-[10px] text-white/70 outline-none"
           >
             <option value="2000">UP TO $20</option>
+            <option value="1500">UP TO $15</option>
             <option value="1000">UP TO $10</option>
             <option value="500">UP TO $5</option>
-            <option value="100">UP TO $1</option>
           </select>
         </div>
       </section>
@@ -207,10 +207,10 @@ export default function MarketPage() {
                 Execution gate
               </p>
               <p className="mt-2 max-w-3xl text-xs leading-relaxed text-white/45">
-                Values from $0.20–$20 are BTC/USD quote references. Orders settle
-                exclusively in sats over Bitcoin Lightning. Checkout remains locked
-                until hashrate ownership, Stratum control and telemetry signing are
-                verified.
+                Values from $5–$20 are BTC/USD quote references. Orders settle
+                exclusively in sats on Bitcoin mainnet with a 5,000-sat floor.
+                Checkout remains locked until hashrate ownership, Stratum control
+                and telemetry signing are verified.
               </p>
             </div>
             <span className="mt-4 font-[family-name:var(--font-mono)] text-[10px] text-white/30 md:mt-0">

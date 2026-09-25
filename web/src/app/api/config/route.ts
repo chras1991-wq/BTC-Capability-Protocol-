@@ -17,10 +17,6 @@ export async function GET() {
       process.env.HASHRATE_PROVIDER_TOKEN &&
       process.env.HASHRATE_SUPPLIER_ID,
   );
-  const lightningSettlement = Boolean(
-    process.env.LIGHTNING_PROVIDER_URL &&
-      process.env.LIGHTNING_PROVIDER_TOKEN,
-  );
   return NextResponse.json({
     network: "bitcoin-mainnet",
     treasuryAddress: TREASURY_ADDRESS,
@@ -34,9 +30,9 @@ export async function GET() {
       catalogSize: 21_000,
       supplierGenerated: true,
       hashrateProvider,
-      lightningSettlement,
-      checkoutEnabled:
-        auth && durableStore && hashrateProvider && lightningSettlement,
+      settlementNetwork: "bitcoin-mainnet",
+      minimumOrderSats: 5_000,
+      checkoutEnabled: auth && durableStore && hashrateProvider,
     },
   });
 }

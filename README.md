@@ -3,7 +3,7 @@
 **Route the work. Verify every share.**
 
 ROOT exposes 21,000 deterministic SHA-256 lease specifications priced from
-**$0.20 to $20.00**. Every order has a distinct compute amount, execution
+**$5.00 to $20.00**. Every order has a distinct compute amount, execution
 window, route policy, region profile, efficiency ceiling, telemetry mode and
 accounting policy.
 
@@ -13,11 +13,11 @@ accept payment until the operator binds:
 - control of the advertised Stratum endpoint;
 - sufficient measured SHA-256 capacity;
 - signed share telemetry for the lease window;
-- a settlement rail appropriate for the amount.
+- a Bitcoin mainnet settlement address.
 
-All orders settle in BTC sats over Bitcoin Lightning. The USD values are pricing
-references only. Sub-dollar orders are not suitable for individual Bitcoin
-mainnet outputs; completed lease batches can be anchored to mainnet.
+All orders settle directly in BTC sats on Bitcoin mainnet. The USD values are
+60-second pricing references only, and every order uses a minimum 5,000-sat
+output to remain practical on mainnet.
 
 ## App
 
@@ -42,7 +42,7 @@ npm run dev
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
 4. Add `PRIVY_APP_SECRET`
-5. Add the operator hashrate provider and Lightning settlement credentials
+5. Add the operator hashrate provider credentials
 6. Deploy
 
 Or CLI:
@@ -57,13 +57,13 @@ npx vercel --prod
 See `web/src/lib/hashrate.ts`:
 
 - fixed size: 21,000 order specifications;
-- lease values: $0.20–$20.00;
+- lease values: $5.00–$20.00;
 - algorithm: SHA-256;
 - functions: FPPS, PPS, solo, failover and benchmark routes;
 - durations: 10 minutes through 24 hours;
 - deterministic IDs: `HRC-00001` through `HRC-21000`.
 
 Checkout is intentionally locked in this repository until a real operator
-supply adapter and Lightning payment backend are configured. The previous
+supply adapter is configured. Settlement uses Bitcoin mainnet only. The previous
 fixed-fee capability mint API remains only for legacy records and is no longer
 linked from the product UI.

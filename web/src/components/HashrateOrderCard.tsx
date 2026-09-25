@@ -26,7 +26,7 @@ export function HashrateOrderCard({order}: {order: HashrateOrder}) {
         <p className="font-[family-name:var(--font-display)] text-xl font-700 text-[#e6a06e]">
           {formatUsd(order.priceCents)}
           <span className="mt-1 block text-right font-[family-name:var(--font-mono)] text-[8px] font-400 tracking-wider text-white/25">
-            BTC / LIGHTNING
+            BTC MAINNET
           </span>
         </p>
       </div>

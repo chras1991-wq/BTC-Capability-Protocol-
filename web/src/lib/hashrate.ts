@@ -1,5 +1,5 @@
 export const HASHRATE_ORDER_COUNT = 21_000;
-export const MIN_LEASE_PRICE_CENTS = 20;
+export const MIN_LEASE_PRICE_CENTS = 500;
 export const MAX_LEASE_PRICE_CENTS = 2_000;
 
 export const HASHRATE_REGIONS = [

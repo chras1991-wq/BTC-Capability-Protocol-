@@ -104,7 +104,7 @@ export default async function HashrateOrderPage({
               </div>
               <div className="mt-3 flex justify-between gap-3">
                 <span className="text-white/28">SETTLEMENT</span>
-                <span className="text-white/45">BTC LIGHTNING / LOCKED</span>
+                <span className="text-white/45">BTC MAINNET / LOCKED</span>
               </div>
             </div>
             <button
@@ -116,8 +116,8 @@ export default async function HashrateOrderPage({
             </button>
             <p className="mt-4 text-[11px] leading-relaxed text-white/30">
               No payment is accepted for an unattested contract. All leases settle
-              in BTC sats over Lightning; USD is a 60-second pricing reference only.
-              Settlement proofs can be batch-anchored to Bitcoin mainnet.
+              directly in BTC sats on Bitcoin mainnet with a 5,000-sat minimum
+              output. USD is a 60-second pricing reference only.
             </p>
           </aside>
         </div>

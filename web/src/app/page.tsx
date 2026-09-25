@@ -87,7 +87,7 @@ export default function HomePage() {
               {
                 v: "03",
                 t: "Lease settlement",
-                d: "Window proof · route policy · Lightning-scale payment",
+                d: "Window proof · route policy · Bitcoin mainnet payment",
               },
             ].map((row) => (
               <article
@@ -123,7 +123,7 @@ export default function HomePage() {
             {[
               ["Catalog", "21,000"],
               ["Verified", "0"],
-              ["Settlement", "BTC / LN"],
+              ["Settlement", "BTC L1"],
               ["Algorithm", "SHA-256"],
             ].map(([k, v]) => (
               <div key={k}>

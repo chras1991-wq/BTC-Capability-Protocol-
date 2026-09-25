@@ -9,7 +9,7 @@ export type BitcoinQuote = {
   amountSats: number;
   quotedAt: number;
   expiresAt: number;
-  settlementNetwork: "bitcoin-lightning";
+  settlementNetwork: "bitcoin-mainnet";
   source: "mempool.space";
 };
 
@@ -33,10 +33,13 @@ export async function quoteUsdCentsInSats(usdCents: number): Promise<BitcoinQuot
   return {
     usdCents,
     btcUsd: prices.USD,
-    amountSats: Math.max(1, Math.ceil((usdCents / 100 / prices.USD) * 100_000_000)),
+    amountSats: Math.max(
+      5_000,
+      Math.ceil((usdCents / 100 / prices.USD) * 100_000_000),
+    ),
     quotedAt,
     expiresAt: quotedAt + 60_000,
-    settlementNetwork: "bitcoin-lightning",
+    settlementNetwork: "bitcoin-mainnet",
     source: "mempool.space",
   };
 }
