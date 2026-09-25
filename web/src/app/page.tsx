@@ -17,9 +17,8 @@ export default function HomePage() {
             Own the Bitcoin. Rent the power.
           </h1>
           <p className="animate-rise-delay-2 mt-6 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/60 md:text-[13px]">
-            Taproot vault · MuSig2 enforcer · CSV recovery
-            <br className="hidden sm:block" />
-            Ownership ≠ execution · CAP-UTXO primitive
+            <span className="block">Taproot vault · MuSig2 enforcer · CSV recovery</span>
+            <span className="mt-1 block">Ownership ≠ execution · CAP-UTXO primitive</span>
           </p>
           <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
             <Link
