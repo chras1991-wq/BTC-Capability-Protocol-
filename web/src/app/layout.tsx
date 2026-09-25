@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Syne, Figtree, JetBrains_Mono } from "next/font/google";
+import { SiteHeader } from "@/components/SiteHeader";
+import { WalletProvider } from "@/lib/wallet";
 import "./globals.css";
 
 const display = Syne({
@@ -22,30 +24,24 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "ROOT — Own the Bitcoin. Rent the power.",
-  description:
-    "ROOT is the Bitcoin Capability Protocol. Separate ownership from execution rights. Lease UTXO capabilities without transferring coins.",
-  icons: {
-    icon: "/icon.svg",
-  },
-  openGraph: {
-    title: "ROOT — Own the Bitcoin. Rent the power.",
-    description:
-      "BTC stays yours. Rent narrow execution rights: liquidity, collateral, market-making, options capacity.",
-    type: "website",
-  },
+  description: "Mint BTC capabilities. Lease them. 0.00005 BTC per mint.",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="flex min-h-full flex-col antialiased">
+        <WalletProvider>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">{children}</div>
+        </WalletProvider>
+      </body>
     </html>
   );
 }

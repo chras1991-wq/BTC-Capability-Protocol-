@@ -1,19 +1,10 @@
-# ROOT — Bitcoin Capability Protocol
+# ROOT
 
-**Own the Bitcoin. Rent the power.**  
-币属于你，能力可以出租。
+**Own the Bitcoin. Rent the power.**
 
-ROOT separates **BTC ownership** from **execution rights**. Owners keep the coins; markets lease narrow UTXO capabilities (liquidity, collateral, market-making, option capacity). Rents settle in BTC. No protocol token at genesis.
+Mint fee **0.00005 BTC** · Wallet mint cap **0.01 BTC** · Lease immediately after mint.
 
-## Repo layout
-
-| Path | Purpose |
-|------|---------|
-| [`web/`](./web) | Brand site + protocol docs (Next.js) |
-| [`docs/`](./docs) | Canonical markdown specs |
-| [`mvp/`](./mvp) | V1 vault / capability compiler sketch (TypeScript) |
-
-## Quick start (site)
+## App
 
 ```bash
 cd web
@@ -21,23 +12,31 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+- `/` — home
+- `/mint` — mint capability
+- `/market` — lease market
+- `/me` — vault
+- `/cap/[id]` — detail + lease now
 
-## Documents
+## Deploy (Vercel)
 
-- [Architecture](./docs/architecture.md)
-- [Whitepaper core](./docs/whitepaper-core.md)
-- [MVP](./docs/mvp.md)
-- [Business & cold start](./docs/business.md)
-- [Pitch narrative](./docs/pitch.md)
+1. Import this GitHub repo in Vercel
+2. Set **Root Directory** to `web`
+3. (Recommended) add Upstash Redis env:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+4. Deploy
 
-## Brand
+Or CLI:
 
-- **Name:** ROOT
-- **Category:** Bitcoin Capability Protocol
-- **Promise:** Lease the capability, not the coin.
-- **Mark:** Vertical trunk with branching rights (ownership above, capabilities below)
+```bash
+cd web
+npx vercel --prod
+```
 
-## Principle
+## Protocol knobs
 
-> Do not issue a token to invent a market. Let BTC owners create capabilities, let users buy them, enforce the rules, and earn in BTC. Governance—if ever—follows product-market fit.
+See `web/src/lib/protocol.ts`:
+
+- `MINT_FEE_SATS = 5000` (0.00005 BTC)
+- `WALLET_MINT_CAP_SATS = 1000000` (0.01 BTC)
