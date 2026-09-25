@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Syne, Figtree, JetBrains_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
-import { WalletProvider } from "@/lib/wallet";
+import { Providers } from "./Providers";
 import "./globals.css";
 
 const display = Syne({
@@ -25,7 +25,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ROOT — Bitcoin Capability Layer",
   description:
-    "UTXO Capability Protocol. Taproot vaults, MuSig2 enforcement, transferable execution rights.",
+    "Bitcoin capability protocol research and an off-chain intent registry.",
   icons: { icon: "/icon.svg" },
 };
 
@@ -38,10 +38,10 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable} h-full`}
     >
       <body className="flex min-h-full flex-col antialiased">
-        <WalletProvider>
+        <Providers>
           <SiteHeader />
           <div className="flex flex-1 flex-col">{children}</div>
-        </WalletProvider>
+        </Providers>
       </body>
     </html>
   );

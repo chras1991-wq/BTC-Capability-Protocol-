@@ -8,7 +8,7 @@ import { MINT_FEE_SATS, WALLET_MINT_CAP_SATS } from "@/lib/protocol";
 import { useWallet } from "@/lib/wallet";
 
 export default function MePage() {
-  const { address, connectDemo } = useWallet();
+  const { address, connect } = useWallet();
   const [caps, setCaps] = useState<Capability[]>([]);
   const [spent, setSpent] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -48,7 +48,7 @@ export default function MePage() {
         </h1>
         <button
           type="button"
-          onClick={connectDemo}
+          onClick={connect}
           className="mt-8 bg-[var(--ink)] px-5 py-3 text-sm text-[var(--mist)]"
         >
           Connect wallet

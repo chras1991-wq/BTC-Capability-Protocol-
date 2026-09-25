@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeroVisual } from "@/components/HeroVisual";
+import {ProtocolStatus} from "@/components/ProtocolStatus";
 
 export default function HomePage() {
   return (
@@ -17,8 +18,8 @@ export default function HomePage() {
             Own the Bitcoin. Rent the power.
           </h1>
           <p className="animate-rise-delay-2 mt-6 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/60 md:text-[13px]">
-            <span className="block">Taproot vault · MuSig2 enforcer · CSV recovery</span>
-            <span className="mt-1 block">Ownership ≠ execution · CAP-UTXO primitive</span>
+            <span className="block">Privy identity · capability registry · policy intents</span>
+            <span className="mt-1 block">Bitcoin enforcement path under active research</span>
           </p>
           <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
             <Link
@@ -37,6 +38,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <ProtocolStatus />
+
       <section className="border-t border-[var(--line)] bg-[var(--ink)] px-5 py-16 text-[var(--mist)] md:px-10 md:py-20">
         <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
           <div>
@@ -47,8 +50,8 @@ export default function HomePage() {
               UTXO Capability
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[var(--mist)]/55">
-              Narrow spend authority over a Taproot vault. Principal stays under
-              owner recovery. Holder executes Π within δ.
+              Proposed narrow spend authority over a Taproot vault. This is the
+              protocol target—not a deployed Bitcoin covenant.
             </p>
           </div>
           <pre className="overflow-x-auto border border-[var(--mist)]/12 bg-[#0c0f13] p-5 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/80 md:text-[13px]">
@@ -109,18 +112,18 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--sage)] uppercase">
-              Index
+              Constraint
             </p>
             <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-700">
-              Bitcoin Capability Rate
+              Truth before throughput.
             </h2>
           </div>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-3 font-[family-name:var(--font-mono)] text-sm sm:grid-cols-4">
             {[
-              ["Liquidity", "2.8%"],
-              ["Collateral", "1.7%"],
-              ["Lightning", "3.4%"],
-              ["Option", "5.6%"],
+              ["Identity", "Privy"],
+              ["Registry", "Alpha"],
+              ["Settlement", "None"],
+              ["Custody", "None"],
             ].map(([k, v]) => (
               <div key={k}>
                 <dt className="text-[11px] text-[var(--ink-soft)]/50">{k}</dt>

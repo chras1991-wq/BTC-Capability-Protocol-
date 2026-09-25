@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { RootMark } from "./RootMark";
 import { useWallet } from "@/lib/wallet";
 
@@ -15,9 +14,8 @@ const NAV = [
 export function SiteHeader() {
   const pathname = usePathname();
   const home = pathname === "/";
-  const { address, shortAddress, connecting, connectDemo, connectUnisat, connectOkx, disconnect } =
+  const { authenticated, shortAddress, connecting, connect, disconnect } =
     useWallet();
-  const [open, setOpen] = useState(false);
 
   const ink = home ? "text-[var(--mist)]" : "text-[var(--ink)]";
   const muted = home
@@ -57,11 +55,11 @@ export function SiteHeader() {
         })}
       </nav>
 
-      <div className="relative">
-        {address ? (
+      <div>
+        {authenticated ? (
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => void disconnect()}
             className={`border px-3 py-1.5 font-[family-name:var(--font-mono)] text-xs ${
               home
                 ? "border-[var(--mist)]/30 text-[var(--mist)]"
@@ -73,7 +71,7 @@ export function SiteHeader() {
         ) : (
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={connect}
             disabled={connecting}
             className={`px-3 py-1.5 text-sm transition ${
               home
@@ -81,74 +79,8 @@ export function SiteHeader() {
                 : "bg-[var(--ink)] text-[var(--mist)] hover:bg-[var(--ink-soft)]"
             }`}
           >
-            Connect
+            Sign in
           </button>
-        )}
-
-        {open && (
-          <>
-            <button
-              type="button"
-              className="fixed inset-0 z-40 cursor-default"
-              aria-label="Close"
-              onClick={() => setOpen(false)}
-            />
-            <div className="absolute right-0 z-50 mt-2 w-56 border border-[var(--line)] bg-[var(--paper)] p-2 text-[var(--ink)] shadow-lg">
-              {address ? (
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)]"
-                  onClick={() => {
-                    disconnect();
-                    setOpen(false);
-                  }}
-                >
-                  Disconnect
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)]"
-                    onClick={async () => {
-                      try {
-                        await connectUnisat();
-                      } catch {
-                        /* ignore */
-                      }
-                      setOpen(false);
-                    }}
-                  >
-                    Unisat
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)]"
-                    onClick={async () => {
-                      try {
-                        await connectOkx();
-                      } catch {
-                        /* ignore */
-                      }
-                      setOpen(false);
-                    }}
-                  >
-                    OKX
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)]"
-                    onClick={() => {
-                      connectDemo();
-                      setOpen(false);
-                    }}
-                  >
-                    Demo wallet
-                  </button>
-                </>
-              )}
-            </div>
-          </>
         )}
       </div>
     </header>

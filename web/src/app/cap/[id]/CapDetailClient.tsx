@@ -12,7 +12,7 @@ export default function CapDetailPage() {
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const router = useRouter();
-  const { address, connectDemo } = useWallet();
+  const { address, connect } = useWallet();
   const [cap, setCap] = useState<Capability | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -76,7 +76,7 @@ export default function CapDetailPage() {
 
   async function onTake() {
     if (!address) {
-      connectDemo();
+      connect();
       return;
     }
     if (!cap) return;
@@ -135,12 +135,12 @@ export default function CapDetailPage() {
 
       <dl className="mt-8 space-y-3 border-t border-[var(--line)] pt-6 font-[family-name:var(--font-mono)] text-sm">
         <div className="flex justify-between gap-4">
-          <dt className="text-[var(--ink-soft)]/55">Seal</dt>
-          <dd>single-use</dd>
+          <dt className="text-[var(--ink-soft)]/55">Record</dt>
+          <dd>off-chain alpha</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-[var(--ink-soft)]/55">Enforcer</dt>
-          <dd>MuSig2</dd>
+          <dt className="text-[var(--ink-soft)]/55">Settlement</dt>
+          <dd>not active</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-[var(--ink-soft)]/55">Owner</dt>

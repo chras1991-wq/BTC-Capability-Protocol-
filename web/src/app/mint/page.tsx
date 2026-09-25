@@ -25,7 +25,7 @@ const POLICY: Record<CapabilityTypeId, string[]> = {
 };
 
 export default function MintPage() {
-  const { address, connectDemo } = useWallet();
+  const { address, connect } = useWallet();
   const router = useRouter();
   const [type, setType] = useState<CapabilityTypeId>("ln");
   const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
@@ -48,17 +48,17 @@ export default function MintPage() {
 
   const preview = useMemo(() => {
     const ops = POLICY[type];
-    return `compile(CAP-UTXO)
-  type        ${type}
-  Π           { ${ops.join(", ")} }
-  enforcer    MuSig2(H, E)
-  recovery    CSV → owner
-  residual    ≥ v − δ`;
+    return `registry.record(CAP-INTENT)
+  class       ${type}
+  requested   { ${ops.join(", ")} }
+  identity    Privy DID / embedded wallet
+  settlement  not active
+  custody     none`;
   }, [type]);
 
   async function onMint() {
     if (!address) {
-      connectDemo();
+      connect();
       return;
     }
     setBusy(true);
@@ -94,7 +94,7 @@ export default function MintPage() {
         Issue capability
       </h1>
       <p className="mt-3 max-w-md text-sm text-[var(--ink-soft)]/70">
-        Bind a narrow execution graph to your vault. Ownership path stays yours.
+        Register a signed capability intent. This alpha does not lock, move, or custody BTC.
       </p>
 
       <div className="mt-10 space-y-8 border-t border-[var(--line)] pt-8">
@@ -126,12 +126,12 @@ export default function MintPage() {
 
         <dl className="grid grid-cols-2 gap-4 font-[family-name:var(--font-mono)] text-sm md:grid-cols-3">
           <div>
-            <dt className="text-[11px] text-[var(--ink-soft)]/50">Enforcement</dt>
-            <dd className="mt-1">MuSig2 + CSV</dd>
+            <dt className="text-[11px] text-[var(--ink-soft)]/50">Record</dt>
+            <dd className="mt-1">off-chain</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-[var(--ink-soft)]/50">Seal</dt>
-            <dd className="mt-1">single-use</dd>
+            <dt className="text-[11px] text-[var(--ink-soft)]/50">Identity</dt>
+            <dd className="mt-1">Privy</dd>
           </div>
           <div>
             <dt className="text-[11px] text-[var(--ink-soft)]/50">Quota</dt>
