@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CAPABILITY_TYPES, MINT_FEE_BTC, WALLET_MINT_CAP_BTC, formatBtc } from "@/lib/protocol";
+import {
+  CAPABILITY_TYPES,
+  MINT_FEE_SATS,
+  WALLET_MINT_CAP_SATS,
+  formatBtc,
+} from "@/lib/protocol";
 import type { CapabilityTypeId } from "@/lib/protocol";
 import { useWallet } from "@/lib/wallet";
 
@@ -10,6 +15,13 @@ type WalletInfo = {
   mintedFeeSats: number;
   remainingFeeSats: number;
   remainingMints: number;
+};
+
+const POLICY: Record<CapabilityTypeId, string[]> = {
+  ln: ["ln_open_channel", "ln_adjust_channel", "cooperative_close"],
+  mm: ["swap_bounded", "residual_to_vault", "max_drawdown_guard"],
+  collateral: ["attest_balance", "oracle_lock", "release_on_settle"],
+  option: ["underwrite_put", "expiry_csv", "assignment_path"],
 };
 
 export default function MintPage() {
@@ -34,6 +46,16 @@ export default function MintPage() {
     void refresh();
   }, [refresh]);
 
+  const preview = useMemo(() => {
+    const ops = POLICY[type];
+    return `compile(CAP-UTXO)
+  type        ${type}
+  Π           { ${ops.join(", ")} }
+  enforcer    MuSig2(H, E)
+  recovery    CSV → owner
+  residual    ≥ v − δ`;
+  }, [type]);
+
   async function onMint() {
     if (!address) {
       connectDemo();
@@ -48,30 +70,37 @@ export default function MintPage() {
         body: JSON.stringify({ owner: address, type }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "mint failed");
+      if (!res.ok) throw new Error(data.error || "issue failed");
       router.push(`/cap/${data.capability.id}?lease=1`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "mint failed");
+      setError(e instanceof Error ? e.message : "issue failed");
     } finally {
       setBusy(false);
     }
   }
 
   const capped = walletInfo != null && walletInfo.remainingMints <= 0;
+  const issued = walletInfo
+    ? Math.floor(walletInfo.mintedFeeSats / MINT_FEE_SATS)
+    : 0;
+  const quota = Math.floor(WALLET_MINT_CAP_SATS / MINT_FEE_SATS);
 
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 px-5 py-10 md:px-8 md:py-14">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl font-700">
-        Mint
+    <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 md:px-8 md:py-14">
+      <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--copper)] uppercase">
+        Compiler
+      </p>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-700">
+        Issue capability
       </h1>
-      <p className="mt-3 font-[family-name:var(--font-mono)] text-sm text-[var(--ink-soft)]/70">
-        {MINT_FEE_BTC} BTC · live to lease
+      <p className="mt-3 max-w-md text-sm text-[var(--ink-soft)]/70">
+        Bind a narrow execution graph to your vault. Ownership path stays yours.
       </p>
 
       <div className="mt-10 space-y-8 border-t border-[var(--line)] pt-8">
         <fieldset>
           <legend className="font-[family-name:var(--font-mono)] text-xs tracking-wide text-[var(--ink-soft)]/60">
-            TYPE
+            POLICY CLASS
           </legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {CAPABILITY_TYPES.map((item) => (
@@ -91,27 +120,25 @@ export default function MintPage() {
           </div>
         </fieldset>
 
-        <dl className="grid grid-cols-2 gap-4 font-[family-name:var(--font-mono)] text-sm">
+        <pre className="overflow-x-auto border border-[var(--line)] bg-[#12151a] p-4 font-[family-name:var(--font-mono)] text-[12px] leading-relaxed text-[var(--mist)]/85">
+          {preview}
+        </pre>
+
+        <dl className="grid grid-cols-2 gap-4 font-[family-name:var(--font-mono)] text-sm md:grid-cols-3">
           <div>
-            <dt className="text-xs text-[var(--ink-soft)]/55">Fee</dt>
-            <dd className="mt-1 text-lg text-[var(--ink)]">{MINT_FEE_BTC} BTC</dd>
+            <dt className="text-[11px] text-[var(--ink-soft)]/50">Enforcement</dt>
+            <dd className="mt-1">MuSig2 + CSV</dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--ink-soft)]/55">Wallet cap</dt>
-            <dd className="mt-1 text-lg text-[var(--ink)]">{WALLET_MINT_CAP_BTC} BTC</dd>
+            <dt className="text-[11px] text-[var(--ink-soft)]/50">Seal</dt>
+            <dd className="mt-1">single-use</dd>
           </div>
-          {walletInfo && (
-            <>
-              <div>
-                <dt className="text-xs text-[var(--ink-soft)]/55">Used</dt>
-                <dd className="mt-1">{formatBtc(walletInfo.mintedFeeSats)}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--ink-soft)]/55">Left</dt>
-                <dd className="mt-1">{walletInfo.remainingMints} mint</dd>
-              </div>
-            </>
-          )}
+          <div>
+            <dt className="text-[11px] text-[var(--ink-soft)]/50">Quota</dt>
+            <dd className="mt-1">
+              {walletInfo ? `${issued} / ${quota}` : `— / ${quota}`}
+            </dd>
+          </div>
         </dl>
 
         {error && (
@@ -124,16 +151,21 @@ export default function MintPage() {
           type="button"
           disabled={busy || capped}
           onClick={() => void onMint()}
-          className="w-full bg-[var(--copper)] py-3.5 text-sm font-600 text-[var(--mist)] transition hover:bg-[var(--copper-bright)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full bg-[var(--ink)] py-3.5 text-sm font-600 text-[var(--mist)] transition hover:bg-[var(--ink-soft)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {!address
-            ? "Connect to mint"
+            ? "Connect wallet"
             : capped
-              ? "Cap reached"
+              ? "Issuance quota exhausted"
               : busy
-                ? "Minting…"
-                : `Mint · ${MINT_FEE_BTC} BTC`}
+                ? "Compiling…"
+                : "Sign & issue"}
         </button>
+
+        <p className="font-[family-name:var(--font-mono)] text-[11px] text-[var(--ink-soft)]/40">
+          issuance_cost {formatBtc(MINT_FEE_SATS)} · epoch_quota{" "}
+          {formatBtc(WALLET_MINT_CAP_SATS)}
+        </p>
       </div>
     </main>
   );

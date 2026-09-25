@@ -26,20 +26,23 @@ export default function MarketPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 md:px-8 md:py-14">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl font-700">
-        Lease
+      <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.18em] text-[var(--copper)] uppercase">
+        Secondary
+      </p>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-700">
+        Capability market
       </h1>
-      <p className="mt-3 font-[family-name:var(--font-mono)] text-sm text-[var(--ink-soft)]/70">
-        Listed capabilities
+      <p className="mt-3 font-[family-name:var(--font-mono)] text-sm text-[var(--ink-soft)]/65">
+        Open CAP-UTXOs · transferable execution rights
       </p>
 
       <div className="mt-10">
         {loading && (
-          <p className="text-sm text-[var(--ink-soft)]/60">Loading…</p>
+          <p className="text-sm text-[var(--ink-soft)]/60">Syncing…</p>
         )}
         {!loading && caps.length === 0 && (
-          <p className="border-t border-[var(--line)] py-10 text-sm text-[var(--ink-soft)]/60">
-            No listings yet.
+          <p className="border-t border-[var(--line)] py-10 font-[family-name:var(--font-mono)] text-sm text-[var(--ink-soft)]/55">
+            market.depth = 0
           </p>
         )}
         {caps.map((cap) => (

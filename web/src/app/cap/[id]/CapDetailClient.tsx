@@ -115,7 +115,7 @@ export default function CapDetailPage() {
       <main className="mx-auto max-w-xl px-5 py-16">
         <p className="text-sm text-[var(--ink-soft)]/60">Not found</p>
         <Link href="/market" className="mt-4 inline-block text-sm text-[var(--copper-deep)]">
-          Lease market
+          Capability market
         </Link>
       </main>
     );
@@ -135,8 +135,12 @@ export default function CapDetailPage() {
 
       <dl className="mt-8 space-y-3 border-t border-[var(--line)] pt-6 font-[family-name:var(--font-mono)] text-sm">
         <div className="flex justify-between gap-4">
-          <dt className="text-[var(--ink-soft)]/55">Mint fee</dt>
-          <dd>{formatBtc(cap.mintFeeSats)}</dd>
+          <dt className="text-[var(--ink-soft)]/55">Seal</dt>
+          <dd>single-use</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-[var(--ink-soft)]/55">Enforcer</dt>
+          <dd>MuSig2</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-[var(--ink-soft)]/55">Owner</dt>
@@ -178,12 +182,15 @@ export default function CapDetailPage() {
       {isOwner && (cap.status === "ready" || showLeasePanel) && cap.status !== "leased" && (
         <section className="mt-10 border-t border-[var(--line)] pt-8">
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-600">
-            Lease now
+            Open execution window
           </h2>
+          <p className="mt-2 font-[family-name:var(--font-mono)] text-xs text-[var(--ink-soft)]/55">
+            Publish Π terms · transferable CAP
+          </p>
           <div className="mt-6 space-y-4">
             <label className="block">
               <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--ink-soft)]/55">
-                RENT (BTC)
+                ρ RENT (BTC)
               </span>
               <input
                 value={rentBtc}
@@ -193,7 +200,7 @@ export default function CapDetailPage() {
             </label>
             <div>
               <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--ink-soft)]/55">
-                TENOR
+                T TENOR
               </span>
               <div className="mt-2 flex gap-2">
                 {TENOR_PRESETS.map((d) => (
@@ -214,7 +221,7 @@ export default function CapDetailPage() {
             </div>
             <label className="block">
               <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--ink-soft)]/55">
-                MAX DRAWDOWN (BPS)
+                δ MAX DRAWDOWN (BPS)
               </span>
               <input
                 type="number"
@@ -229,7 +236,7 @@ export default function CapDetailPage() {
               onClick={() => void onList()}
               className="w-full bg-[var(--ink)] py-3.5 text-sm font-600 text-[var(--mist)] disabled:opacity-40"
             >
-              {busy ? "Listing…" : "List for lease"}
+              {busy ? "Publishing…" : "Publish to market"}
             </button>
           </div>
         </section>
@@ -242,7 +249,7 @@ export default function CapDetailPage() {
           onClick={() => void onTake()}
           className="mt-10 w-full bg-[var(--copper)] py-3.5 text-sm font-600 text-[var(--mist)] disabled:opacity-40"
         >
-          {busy ? "Taking…" : `Take lease · ${formatBtc(cap.rentSats ?? 0)}`}
+          {busy ? "Binding…" : `Bind capability · ${formatBtc(cap.rentSats ?? 0)}`}
         </button>
       )}
     </main>

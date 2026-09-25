@@ -23,8 +23,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ROOT — Own the Bitcoin. Rent the power.",
-  description: "Mint BTC capabilities. Lease them. 0.00005 BTC per mint.",
+  title: "ROOT — Bitcoin Capability Layer",
+  description:
+    "UTXO Capability Protocol. Taproot vaults, MuSig2 enforcement, transferable execution rights.",
   icons: { icon: "/icon.svg" },
 };
 

@@ -29,9 +29,12 @@ export function CapCard({ cap }: { cap: Capability }) {
         </p>
       </div>
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 font-[family-name:var(--font-mono)] text-xs text-[var(--ink-soft)]/70">
-        <span>mint {formatBtc(cap.mintFeeSats)}</span>
-        {cap.rentSats != null && <span>rent {formatBtc(cap.rentSats)}</span>}
-        {cap.tenorDays != null && <span>{cap.tenorDays}d</span>}
+        <span>Π / Taproot</span>
+        {cap.rentSats != null && <span>ρ {formatBtc(cap.rentSats)}</span>}
+        {cap.tenorDays != null && <span>T={cap.tenorDays}d</span>}
+        {cap.maxDrawdownBps != null && (
+          <span>δ={cap.maxDrawdownBps}bps</span>
+        )}
       </div>
     </Link>
   );
