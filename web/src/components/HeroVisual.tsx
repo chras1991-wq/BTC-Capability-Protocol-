@@ -25,7 +25,7 @@ export function HeroVisual() {
         <path
           className="capability-path"
           pathLength={1}
-          d="M480 90 V310"
+          d="M480 160 V340"
           stroke="url(#branch)"
           strokeWidth="3"
           fill="none"
@@ -33,7 +33,7 @@ export function HeroVisual() {
         <path
           className="capability-path"
           pathLength={1}
-          d="M480 310 C410 360, 300 400, 220 480"
+          d="M480 340 C410 390, 300 430, 220 510"
           stroke="url(#branch)"
           strokeWidth="2.2"
           fill="none"
@@ -42,7 +42,7 @@ export function HeroVisual() {
         <path
           className="capability-path"
           pathLength={1}
-          d="M480 310 C550 360, 660 400, 740 480"
+          d="M480 340 C550 390, 660 430, 740 510"
           stroke="url(#branch)"
           strokeWidth="2.2"
           fill="none"
@@ -51,17 +51,17 @@ export function HeroVisual() {
         <path
           className="capability-path"
           pathLength={1}
-          d="M480 310 C475 400, 450 500, 420 600"
+          d="M480 340 C475 430, 450 530, 420 630"
           stroke="url(#branch)"
           strokeWidth="2"
           fill="none"
           style={{ animationDelay: "0.8s" }}
         />
-        <circle cx="480" cy="90" r="10" fill="#d4844a" />
-        <circle cx="480" cy="310" r="7" fill="#e8ecef" />
-        <circle cx="220" cy="480" r="5.5" fill="#d4844a" />
-        <circle cx="740" cy="480" r="5.5" fill="#d4844a" />
-        <circle cx="420" cy="600" r="5" fill="#9bb4a6" />
+        <circle cx="480" cy="160" r="10" fill="#d4844a" />
+        <circle cx="480" cy="340" r="7" fill="#e8ecef" />
+        <circle cx="220" cy="510" r="5.5" fill="#d4844a" />
+        <circle cx="740" cy="510" r="5.5" fill="#d4844a" />
+        <circle cx="420" cy="630" r="5" fill="#9bb4a6" />
       </svg>
     </div>
   );
