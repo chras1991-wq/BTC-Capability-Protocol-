@@ -29,7 +29,8 @@
   "dependencies": {
     "bitcoinjs-lib": "^7.0.2",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "tiny-secp256k1": "^2.2.4"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",

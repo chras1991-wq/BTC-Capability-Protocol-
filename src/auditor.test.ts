@@ -1,4 +1,4 @@
-import { address as btcAddress, networks } from 'bitcoinjs-lib'
+import { address as btcAddress } from 'bitcoinjs-lib'
 import { describe, expect, it } from 'vitest'
 import { classifyAddress, evaluate, type MempoolAddress } from './auditor'
 
@@ -9,6 +9,12 @@ const emptyStats = {
   spent_txo_sum: 0,
   tx_count: 0,
 }
+
+const generatorX = Uint8Array.from(
+  '79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+    .match(/../g)!
+    .map((byte) => Number.parseInt(byte, 16)),
+)
 
 function chain(overrides: Partial<typeof emptyStats>): MempoolAddress {
   return {
@@ -24,8 +30,7 @@ describe('Bitcoin script classification', () => {
   })
 
   it('recognizes a taproot output with a visible output key', () => {
-    const output = Uint8Array.from([0x51, 0x20, ...new Array(32).fill(1)])
-    const taproot = btcAddress.fromOutputScript(output, networks.bitcoin)
+    const taproot = btcAddress.toBech32(generatorX, 1, 'bc')
     expect(classifyAddress(taproot)).toMatchObject({
       type: 'P2TR',
       publicKeyState: 'output-key-visible',
@@ -73,8 +78,7 @@ describe('quantum exposure policy', () => {
   })
 
   it('flags funded taproot outputs without requiring a spend', () => {
-    const output = Uint8Array.from([0x51, 0x20, ...new Array(32).fill(2)])
-    const taprootAddress = btcAddress.fromOutputScript(output, networks.bitcoin)
+    const taprootAddress = btcAddress.toBech32(generatorX, 1, 'bc')
     const result = evaluate(
       taprootAddress,
       'mainnet',

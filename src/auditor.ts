@@ -1,4 +1,7 @@
-import { address as btcAddress, networks } from 'bitcoinjs-lib'
+import { address as btcAddress, initEccLib, networks } from 'bitcoinjs-lib'
+import * as ecc from 'tiny-secp256k1'
+
+initEccLib(ecc)
 
 export type NetworkName = 'mainnet' | 'testnet' | 'signet'
 export type Exposure = 'exposed' | 'likely-exposed' | 'shielded' | 'empty'
