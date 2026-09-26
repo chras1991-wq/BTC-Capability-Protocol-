@@ -1,54 +1,104 @@
-# Hourglass
+# Hourglass / Genesis Canary Pass
 
-Bitcoin 量子暴露审计器。输入公开地址，Hourglass 会读取链上历史并判断：
+固定发行的 Hourglass 访问凭证与自托管 BTC 收款系统。
 
-- 地址脚本类型（P2PKH、P2SH、P2WPKH、P2WSH、P2TR）
-- 公钥是否已经直接公开或因历史花费而公开
-- 当前余额、UTXO 数量与地址复用情况
-- 抗量子迁移优先级与操作建议
+| 参数 | 数值 |
+| --- | ---: |
+| 总量 | 2,100 |
+| 单价 | 47,619 sats |
+| 理论总收 | 99,999,900 sats |
+| 硬上限 | `< 1 BTC` |
 
-Hourglass 是只读工具，不请求私钥、助记词或签名。默认直接查询
-[mempool.space API](https://mempool.space/docs/api/rest)，地址会发送给该公共索引器。
+每枚凭证包含序列号、持有人公开标识、权益、签发时间和 Ed25519 签名。凭证可下载并通过发行方公钥验证。
 
-## 风险模型
+## 权益
 
-具有密码学相关量子计算能力（CRQC）的攻击者理论上可使用 Shor 算法从
-secp256k1 公钥恢复私钥。不同 Bitcoin 输出的公钥暴露方式不同：
+- 12 个月 Hourglass Pro
+- 10 份 Q-SEAL 签名审计凭证
+- Q-DAY 预警流
+- Exposure API
+- Dark Exit 加密撤离试验优先访问
 
-| 输出类型 | 首次花费前 | 花费后 |
-| --- | --- | --- |
-| P2PKH / P2WPKH | 公钥受 HASH160 保护 | 公钥公开；地址复用使剩余 UTXO 暴露 |
-| P2SH / P2WSH | 脚本受哈希保护 | 赎回脚本及其中的公钥通常公开 |
-| P2TR | x-only 输出公钥始终公开 | 公开 |
+凭证不包含收益、分红、回购或价格承诺。
 
-风险分数是迁移优先级，不代表现有量子计算机能够立即盗取 BTC。BIP-360 和
-BIP-361 仍处于提案阶段；本项目不会推荐未经共识或审计的“抗量子地址”。
+## 系统
+
+- React/Vite 铸造界面
+- SQLite 原子库存与序列号
+- BTCPay Server Greenfield API
+- BTCPay Webhook HMAC 验证
+- Invoice 金额、币种和结算状态复核
+- Ed25519 凭证签发与验证
+- 订单限流、15 分钟库存保留、幂等结算
+- Docker 生产镜像
 
 ## 本地运行
 
 ```bash
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-质量检查：
+本地默认使用模拟结算。界面会明确显示 `DEV / SIMULATE SETTLEMENT`，不会产生真实付款。
 
 ```bash
 npm test
 npm run build
 ```
 
-## 审计凭证
+## BTCPay 生产配置
 
-每次扫描均可下载 `hourglass.audit.v1` JSON，记录策略版本、数据源、发现、
-UTXO 和扫描时间，便于迁移清点或后续复核。
+1. 创建 BTCPay Store，并连接 BTC 钱包。
+2. 创建仅限该 Store 的 Greenfield API Key。
+3. 新建 Webhook：
+   - URL：`https://<domain>/api/webhooks/btcpay`
+   - Event：`InvoiceSettled`
+   - 复制 Webhook Secret。
+4. 设置环境：
 
-## 限制
+```dotenv
+NODE_ENV=production
+PORT=8787
+SITE_URL=https://canary.example.com
+PAYMENT_MODE=btcpay
+DATABASE_PATH=/app/data/hourglass.db
+SIGNING_KEY_PATH=/app/data/hourglass-ed25519.pem
+BTCPAY_URL=https://btcpay.example.com
+BTCPAY_STORE_ID=...
+BTCPAY_API_KEY=...
+BTCPAY_WEBHOOK_SECRET=...
+```
 
-- 当前扫描地址，不扫描钱包 xpub 或描述符。
-- P2SH/P2WSH 仅根据地址历史做保守判断；精确判断需要解析被花费输出的脚本。
-- 公共索引器可能限流、延迟或返回不完整数据。
-- 本项目不是钱包，也不构成财务或密钥迁移建议。
+生产模式拒绝 `PAYMENT_MODE=mock`。首次启动会生成 Ed25519 私钥；必须同时备份数据库和
+`SIGNING_KEY_PATH`。私钥丢失后无法继续签发与旧凭证一致的证明。
+
+## Docker
+
+```bash
+docker build -t hourglass-canary .
+docker run --rm -p 8787:8787 \
+  --env-file .env.production \
+  -v hourglass-data:/app/data \
+  hourglass-canary
+```
+
+TLS 应由反向代理终止。BTCPay API Key、Webhook Secret 和签名私钥不得进入镜像或源码。
+
+## 凭证格式
+
+```text
+hourglass.canary-pass.v1
+├── claims
+│   ├── serial / supply / priceSats / maxProceedsSats
+│   ├── holder / orderId / issuedAt
+│   └── entitlements
+└── proof
+    ├── algorithm: Ed25519
+    ├── publicKey
+    ├── fingerprint
+    └── signature
+```
 
 ## License
 
