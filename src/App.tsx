@@ -4,6 +4,7 @@ import { api, type MintConfig, type MintOrder, type SignedPass } from './api'
 import './genesis.css'
 
 function compact(value: string, start = 10, end = 8) {
+  if (value.length <= start + end + 1) return value
   return `${value.slice(0, start)}…${value.slice(-end)}`
 }
 
