@@ -302,7 +302,17 @@ export default function ProtocolApp() {
         </div>
 
         <div className="access-console">
-          {!order && (
+          {!order && config?.paymentMode === 'offline' && (
+            <div className="offline-state">
+              <div className="console-head"><span>ACCESS GATE</span><span>STANDBY</span></div>
+              <div className="credential-mark"><span>₿</span><b>HG</b></div>
+              <h3>LIVE TESTS ARE OPEN.<br />WATCHER ACCESS IS NEXT.</h3>
+              <p>The public Q-Day drill is live. Self-hosted Bitcoin settlement and persistent credential issuance are being connected before the first seat opens.</p>
+              <a className="orange-button full" href="#test">RUN THE FREE DRILL <b>↑</b></a>
+            </div>
+          )}
+
+          {!order && config?.paymentMode !== 'offline' && (
             <form onSubmit={activate}>
               <div className="console-head"><span>ACCESS REQUEST</span><span>01</span></div>
               <label htmlFor="holder">PUBLIC HOLDER ID</label>

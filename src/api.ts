@@ -6,7 +6,7 @@ export interface MintConfig {
   minted: number
   reserved: number
   available: number
-  paymentMode: 'mock' | 'btcpay'
+  paymentMode: 'mock' | 'btcpay' | 'offline'
   issuerFingerprint: string
 }
 
