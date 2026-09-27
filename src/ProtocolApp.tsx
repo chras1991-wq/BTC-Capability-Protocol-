@@ -134,6 +134,12 @@ export default function ProtocolApp() {
       </nav>
 
       <header className="protocol-hero">
+        <div className="hero-ghost" aria-hidden="true">Q/Δ</div>
+        <div className="cosmic-coordinates" aria-hidden="true">
+          <span>40°45'10"N</span>
+          <span>−73°59'08"W</span>
+          <span>EPOCH / UNKNOWN</span>
+        </div>
         <div className="hero-copy">
           <p className="eyebrow">THE BITCOIN Q-DAY DRILL</p>
           <h1>Would your Bitcoin<br /><em>survive Q-Day?</em></h1>
@@ -150,6 +156,7 @@ export default function ProtocolApp() {
         <div className="block-visual" aria-hidden="true">
           <div className="block-head"><span>BLOCK 000000</span><span>Q / 01</span></div>
           <div className="key-orbit">
+            <div className="event-horizon" />
             <span className="key-core">K</span>
             <i className="orbit-one" />
             <i className="orbit-two" />
