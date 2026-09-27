@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api, type MintConfig, type MintOrder, type SignedPass } from './api'
 import { auditAddress, formatSats, type AuditResult } from './auditor'
-import './protocol.css'
+import './field.css'
 
 function compact(value: string, start = 10, end = 8) {
   if (value.length <= start + end + 1) return value
@@ -134,11 +134,11 @@ export default function ProtocolApp() {
       </nav>
 
       <header className="protocol-hero">
-        <div className="hero-ghost" aria-hidden="true">Q/Δ</div>
+        <div className="hero-ghost" aria-hidden="true">FIELD<br />UNIT</div>
         <div className="cosmic-coordinates" aria-hidden="true">
-          <span>40°45'10"N</span>
-          <span>−73°59'08"W</span>
-          <span>EPOCH / UNKNOWN</span>
+          <span>PART: HG–QD/01</span>
+          <span>CAL: 2140–09</span>
+          <span>STATUS: TEST READY</span>
         </div>
         <div className="hero-copy">
           <p className="eyebrow">THE BITCOIN Q-DAY DRILL</p>
@@ -154,6 +154,8 @@ export default function ProtocolApp() {
         </div>
 
         <div className="block-visual" aria-hidden="true">
+          <i className="screw screw-a" /><i className="screw screw-b" />
+          <i className="screw screw-c" /><i className="screw screw-d" />
           <div className="block-head"><span>BLOCK 000000</span><span>Q / 01</span></div>
           <div className="key-orbit">
             <div className="event-horizon" />
