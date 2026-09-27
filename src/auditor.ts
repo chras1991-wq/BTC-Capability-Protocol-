@@ -1,7 +1,4 @@
-import { address as btcAddress, initEccLib, networks } from 'bitcoinjs-lib'
-import * as ecc from 'tiny-secp256k1'
-
-initEccLib(ecc)
+import { address as btcAddress } from 'bitcoinjs-lib'
 
 export type NetworkName = 'mainnet' | 'testnet' | 'signet'
 export type Exposure = 'exposed' | 'likely-exposed' | 'shielded' | 'empty'
@@ -70,30 +67,35 @@ export function detectNetwork(value: string): NetworkName {
 }
 
 export function classifyAddress(value: string, networkName = detectNetwork(value)): ScriptProfile {
-  const network = networkName === 'mainnet' ? networks.bitcoin : networks.testnet
-  let script: Uint8Array
-
+  const candidate = value.trim()
   try {
-    script = btcAddress.toOutputScript(value.trim(), network)
+    if (/^(bc1|tb1|bcrt1)/i.test(candidate)) {
+      const decoded = btcAddress.fromBech32(candidate)
+      const expectedPrefix = networkName === 'mainnet' ? 'bc' : networkName === 'signet' ? 'tb' : 'tb'
+      if (decoded.prefix !== expectedPrefix) throw new Error('Network mismatch')
+      if (decoded.version === 0 && decoded.data.length === 20) {
+        return { type: 'P2WPKH', publicKeyState: 'hidden', summary: 'Witness public-key hash; key hidden until the first spend' }
+      }
+      if (decoded.version === 0 && decoded.data.length === 32) {
+        return { type: 'P2WSH', publicKeyState: 'script-hash', summary: 'Witness script hash; witness script appears when spent' }
+      }
+      if (decoded.version === 1 && decoded.data.length === 32) {
+        return { type: 'P2TR', publicKeyState: 'output-key-visible', summary: 'Taproot output contains a visible x-only public key' }
+      }
+      throw new Error('Unsupported witness program')
+    }
+
+    const decoded = btcAddress.fromBase58Check(candidate)
+    const p2pkhVersion = networkName === 'mainnet' ? 0 : 111
+    const p2shVersion = networkName === 'mainnet' ? 5 : 196
+    if (decoded.version === p2pkhVersion) {
+      return { type: 'P2PKH', publicKeyState: 'hidden', summary: 'Public-key hash; key hidden until the first spend' }
+    }
+    if (decoded.version === p2shVersion) {
+      return { type: 'P2SH', publicKeyState: 'script-hash', summary: 'Script hash; redeem script usually appears when spent' }
+    }
   } catch {
     throw new Error('Invalid address or network. Enter a standard mainnet or testnet Bitcoin address.')
-  }
-
-  const hex = Array.from(script, (byte) => byte.toString(16).padStart(2, '0')).join('')
-  if (/^76a914[0-9a-f]{40}88ac$/.test(hex)) {
-    return { type: 'P2PKH', publicKeyState: 'hidden', summary: 'Public-key hash; key hidden until the first spend' }
-  }
-  if (/^a914[0-9a-f]{40}87$/.test(hex)) {
-    return { type: 'P2SH', publicKeyState: 'script-hash', summary: 'Script hash; redeem script usually appears when spent' }
-  }
-  if (/^0014[0-9a-f]{40}$/.test(hex)) {
-    return { type: 'P2WPKH', publicKeyState: 'hidden', summary: 'Witness public-key hash; key hidden until the first spend' }
-  }
-  if (/^0020[0-9a-f]{64}$/.test(hex)) {
-    return { type: 'P2WSH', publicKeyState: 'script-hash', summary: 'Witness script hash; witness script appears when spent' }
-  }
-  if (/^5120[0-9a-f]{64}$/.test(hex)) {
-    return { type: 'P2TR', publicKeyState: 'output-key-visible', summary: 'Taproot output contains a visible x-only public key' }
   }
   throw new Error('This script type is not supported yet.')
 }
