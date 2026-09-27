@@ -38,7 +38,7 @@ describe('Bitcoin script classification', () => {
   })
 
   it('rejects malformed addresses', () => {
-    expect(() => classifyAddress('bc1-not-an-address')).toThrow(/无效/)
+    expect(() => classifyAddress('bc1-not-an-address')).toThrow(/Invalid/)
   })
 })
 

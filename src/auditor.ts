@@ -76,26 +76,26 @@ export function classifyAddress(value: string, networkName = detectNetwork(value
   try {
     script = btcAddress.toOutputScript(value.trim(), network)
   } catch {
-    throw new Error('地址格式或网络无效。请输入 mainnet / testnet 的标准 Bitcoin 地址。')
+    throw new Error('Invalid address or network. Enter a standard mainnet or testnet Bitcoin address.')
   }
 
   const hex = Array.from(script, (byte) => byte.toString(16).padStart(2, '0')).join('')
   if (/^76a914[0-9a-f]{40}88ac$/.test(hex)) {
-    return { type: 'P2PKH', publicKeyState: 'hidden', summary: '公钥哈希地址；首次花费前隐藏公钥' }
+    return { type: 'P2PKH', publicKeyState: 'hidden', summary: 'Public-key hash; key hidden until the first spend' }
   }
   if (/^a914[0-9a-f]{40}87$/.test(hex)) {
-    return { type: 'P2SH', publicKeyState: 'script-hash', summary: '脚本哈希地址；花费时通常公开赎回脚本' }
+    return { type: 'P2SH', publicKeyState: 'script-hash', summary: 'Script hash; redeem script usually appears when spent' }
   }
   if (/^0014[0-9a-f]{40}$/.test(hex)) {
-    return { type: 'P2WPKH', publicKeyState: 'hidden', summary: '隔离见证公钥哈希；首次花费前隐藏公钥' }
+    return { type: 'P2WPKH', publicKeyState: 'hidden', summary: 'Witness public-key hash; key hidden until the first spend' }
   }
   if (/^0020[0-9a-f]{64}$/.test(hex)) {
-    return { type: 'P2WSH', publicKeyState: 'script-hash', summary: '隔离见证脚本哈希；花费时公开见证脚本' }
+    return { type: 'P2WSH', publicKeyState: 'script-hash', summary: 'Witness script hash; witness script appears when spent' }
   }
   if (/^5120[0-9a-f]{64}$/.test(hex)) {
-    return { type: 'P2TR', publicKeyState: 'output-key-visible', summary: 'Taproot 输出直接包含 x-only 公钥' }
+    return { type: 'P2TR', publicKeyState: 'output-key-visible', summary: 'Taproot output contains a visible x-only public key' }
   }
-  throw new Error('当前版本不支持该脚本类型。')
+  throw new Error('This script type is not supported yet.')
 }
 
 function combineStats(a: AddressStats, b: AddressStats): AddressStats {
@@ -141,22 +141,22 @@ export function evaluate(
   }
 
   const findings: string[] = []
-  if (isVisibleKey) findings.push('Taproot 输出公钥始终在链上可见；不存在“首次花费前”的哈希保护期。')
+  if (isVisibleKey) findings.push('The Taproot output key is always visible on-chain; there is no pre-spend hash shield.')
   if (script.publicKeyState === 'hidden' && hasSpent) {
-    findings.push('该地址已有花费记录，签名与公钥已随 scriptSig / witness 公开。')
+    findings.push('This address has spent before; its signature and public key are already visible in scriptSig or witness data.')
   }
-  if (isScriptReveal) findings.push('该脚本哈希已有花费记录；历史赎回脚本可能公开其成员公钥。')
+  if (isScriptReveal) findings.push('This script hash has spent before; the historical redeem script may expose member public keys.')
   if (!hasSpent && script.publicKeyState === 'hidden') {
-    findings.push('未检测到花费记录；当前公钥仍受 HASH160 承诺保护。')
+    findings.push('No spend was detected; the public key remains protected by its HASH160 commitment.')
   }
-  if (utxos.length > 1) findings.push(`检测到 ${utxos.length} 个未花费输出；地址复用扩大了单点暴露面。`)
-  if (!hasFunds) findings.push('当前没有未花费余额，因此没有在险资金。')
+  if (utxos.length > 1) findings.push(`${utxos.length} live outputs were found; address reuse increases the single-key exposure.`)
+  if (!hasFunds) findings.push('This address has no unspent balance, so no value is currently at risk.')
 
   const actions = hasFunds
     ? exposure === 'shielded'
-      ? ['不要从该地址进行“试花费”', '停止地址复用', '关注 BIP-360 / BIP-361，但不要迁移至未经审计的方案']
-      : ['停止向该地址接收新资金', '制定一次性 UTXO 迁移清单', '使用硬件钱包生成全新地址，避免复用', '等待共识认可的抗量子输出类型，不要相信“量子恢复服务”']
-    : ['归档该地址的审计记录', '新收款地址坚持一次一用']
+      ? ['Do not make a test spend from this address', 'Stop reusing the address', 'Track BIP-360 / BIP-361 without moving into unaudited schemes']
+      : ['Stop receiving new funds here', 'Prepare a one-time UTXO migration inventory', 'Use a hardware wallet to generate a fresh, single-use address', 'Wait for a consensus-backed post-quantum output type']
+    : ['Archive this result', 'Use every new receiving address only once']
 
   return {
     schema: 'hourglass.audit.v1',
@@ -176,7 +176,7 @@ export function evaluate(
     actions,
     source: `${API_ROOT[network]}/address/:address`,
     scannedAt: now.toISOString(),
-    caveat: '风险分数是迁移优先级，不代表量子计算机可立即盗取资金。BIP-360/361 仍处于提案阶段。',
+    caveat: 'The score is a migration priority, not evidence that a quantum computer can steal funds today. BIP-360/361 remain proposals.',
   }
 }
 
@@ -198,9 +198,9 @@ export async function auditAddress(
 
   if (!addressResponse.ok || !utxoResponse.ok) {
     if (addressResponse.status === 429 || utxoResponse.status === 429) {
-      throw new Error('公共索引器请求过于频繁，请稍后重试。')
+      throw new Error('The public indexer is rate-limiting requests. Try again shortly.')
     }
-    throw new Error('无法从公共 Bitcoin 索引器读取该地址。')
+    throw new Error('The address could not be read from the public Bitcoin indexer.')
   }
 
   const data = (await addressResponse.json()) as MempoolAddress

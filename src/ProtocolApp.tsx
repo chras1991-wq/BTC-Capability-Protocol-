@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api, type MintConfig, type MintOrder, type SignedPass } from './api'
+import { auditAddress, formatSats, type AuditResult } from './auditor'
 import './protocol.css'
 
 function compact(value: string, start = 10, end = 8) {
@@ -29,6 +30,10 @@ export default function ProtocolApp() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [verified, setVerified] = useState<boolean | null>(null)
+  const [scanTarget, setScanTarget] = useState('')
+  const [scanResult, setScanResult] = useState<AuditResult | null>(null)
+  const [scanError, setScanError] = useState('')
+  const [scanning, setScanning] = useState(false)
 
   const capacity = useMemo(() => {
     if (!config) return 0
@@ -69,6 +74,21 @@ export default function ProtocolApp() {
     }
   }
 
+  async function runExposureTest(event: FormEvent) {
+    event.preventDefault()
+    if (!scanTarget.trim()) return
+    setScanning(true)
+    setScanError('')
+    setScanResult(null)
+    try {
+      setScanResult(await auditAddress(scanTarget))
+    } catch (cause) {
+      setScanError(cause instanceof Error ? cause.message : 'LIVE_TEST_FAILED')
+    } finally {
+      setScanning(false)
+    }
+  }
+
   async function simulateSettlement() {
     if (!order) return
     setLoading(true)
@@ -106,23 +126,23 @@ export default function ProtocolApp() {
           <span>HOURGLASS</span>
         </a>
         <div className="protocol-nav">
-          <a href="#mechanism">机制</a>
-          <a href="#exposure">暴露模型</a>
-          <a href="#access">接入</a>
+          <a href="#test">Live Test</a>
+          <a href="#missions">Missions</a>
+          <a href="#access">Join</a>
         </div>
         <div className="network-state"><i /> CONTROL PLANE / ONLINE</div>
       </nav>
 
       <header className="protocol-hero">
         <div className="hero-copy">
-          <p className="eyebrow">BITCOIN QUANTUM DEFENSE NETWORK</p>
-          <h1>在公钥成为目标之前，<br /><em>识别它。</em></h1>
+          <p className="eyebrow">THE BITCOIN Q-DAY DRILL</p>
+          <h1>Would your Bitcoin<br /><em>survive Q-Day?</em></h1>
           <p className="hero-deck">
-            Hourglass 建立 Bitcoin UTXO 的量子暴露索引，签发可验证风险凭证，
-            监测 Q-DAY 信号，并为高风险资产准备加密撤离通道。
+            Put any public Bitcoin address through a live exposure test. Find the leaked keys,
+            measure the value at risk, and join 2,100 founding Watchers preparing the exit route.
           </p>
           <div className="hero-actions">
-            <a className="orange-button" href="#mechanism">查看协议机制 <b>↓</b></a>
+            <a className="orange-button" href="#test">TEST AN ADDRESS <b>↓</b></a>
             <span>NO PRIVATE KEYS<br />NO CUSTODY</span>
           </div>
         </div>
@@ -142,41 +162,92 @@ export default function ProtocolApp() {
       </header>
 
       <section className="risk-strip" id="exposure">
-        <div><span>P2PK / P2TR</span><strong>PUBLIC KEY VISIBLE</strong><small>直接暴露</small></div>
-        <div><span>P2PKH / P2WPKH</span><strong>HASH SHIELDED</strong><small>首次花费前</small></div>
-        <div><span>REUSED ADDRESS</span><strong>KEY REVEALED</strong><small>历史花费后</small></div>
-        <div><span>THREAT MODEL</span><strong>SHOR / CRQC</strong><small>迁移前预警</small></div>
+        <div><span>P2PK / P2TR</span><strong>PUBLIC KEY VISIBLE</strong><small>Exposed by design</small></div>
+        <div><span>P2PKH / P2WPKH</span><strong>HASH SHIELDED</strong><small>Until the first spend</small></div>
+        <div><span>REUSED ADDRESS</span><strong>KEY REVEALED</strong><small>Old spend, live risk</small></div>
+        <div><span>THREAT MODEL</span><strong>SHOR / CRQC</strong><small>Detect before migration</small></div>
       </section>
 
-      <section className="mechanism" id="mechanism">
+      <section className="live-test" id="test">
         <div className="section-head">
-          <p>PROTOCOL / 01</p>
-          <h2>四层量子防御控制面</h2>
-          <span>从全量链上识别，到受控迁移。</span>
+          <p>PLAY / 01</p>
+          <h2>Run the live exposure test.</h2>
+          <span>Public chain data only. Never enter a private key.</span>
+        </div>
+        <div className="test-grid">
+          <form className="test-console" onSubmit={runExposureTest}>
+            <div className="console-head"><span>Q-DAY STRESS TEST</span><span>LIVE</span></div>
+            <label htmlFor="scan-target">BITCOIN ADDRESS</label>
+            <input
+              id="scan-target"
+              value={scanTarget}
+              onChange={(event) => setScanTarget(event.target.value)}
+              placeholder="bc1q… / bc1p… / 1… / 3…"
+              spellCheck={false}
+              autoComplete="off"
+            />
+            <button className="orange-button full" disabled={scanning || !scanTarget.trim()}>
+              {scanning ? 'READING THE CHAIN…' : 'START THE DRILL'} <b>↗</b>
+            </button>
+            {scanError && <div className="test-error">FAULT / {scanError}</div>}
+          </form>
+
+          <div className={`test-result ${scanResult ? scanResult.exposure : 'idle'}`}>
+            {!scanResult ? (
+              <>
+                <div className="radar"><i /><i /><i /><b>?</b></div>
+                <h3>NO TARGET LOCKED</h3>
+                <p>Enter a public address to reveal its script type, key state, live UTXOs, and Q-Day priority.</p>
+              </>
+            ) : (
+              <>
+                <div className="result-top">
+                  <span>EXPOSURE SCORE</span>
+                  <strong>{scanResult.score}<small>/100</small></strong>
+                </div>
+                <h3>{scanResult.exposure === 'shielded' ? 'HASH SHIELD ACTIVE' : scanResult.exposure === 'empty' ? 'NO VALUE AT RISK' : 'PUBLIC KEY EXPOSED'}</h3>
+                <div className="result-stats">
+                  <div><span>SCRIPT</span><b>{scanResult.script.type}</b></div>
+                  <div><span>KEY STATE</span><b>{scanResult.publicKeyRevealed ? 'REVEALED' : 'HASHED'}</b></div>
+                  <div><span>LIVE VALUE</span><b>{formatSats(scanResult.balance)} sats</b></div>
+                </div>
+                <p>{scanResult.findings[0]}</p>
+                <a href="#access">TURN THIS INTO A SIGNED Q-SEAL →</a>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="mechanism" id="missions">
+        <div className="section-head">
+          <p>MISSIONS / 02</p>
+          <h2>Four ways to enter the defense.</h2>
+          <span>Test, watch, prove, and rehearse the exit.</span>
         </div>
         <div className="mechanism-grid">
           <article>
             <div className="step"><b>01</b><span>ATLAS</span></div>
-            <h3>暴露索引</h3>
-            <p>解析 UTXO、脚本类型、历史花费与地址复用，持续计算公钥暴露状态和在险价值。</p>
+            <h3>Hunt exposed keys</h3>
+            <p>Scan UTXOs, script types, old spends, and reused addresses. Find the Bitcoin already visible to a quantum attacker.</p>
             <code>UTXO → SCRIPT → KEY STATE</code>
           </article>
           <article>
             <div className="step"><b>02</b><span>CANARY</span></div>
-            <h3>Q-DAY 预警</h3>
-            <p>监测密码学挑战、老币异常移动和公开攻击信号，形成机器可读取的分级事件流。</p>
+            <h3>Stand the watch</h3>
+            <p>Follow cryptographic canaries, dormant-coin movement, and attack signals. Be early when the threat state changes.</p>
             <code>SIGNAL → VERIFY → ALERT</code>
           </article>
           <article>
             <div className="step"><b>03</b><span>Q-SEAL</span></div>
-            <h3>风险凭证</h3>
-            <p>将地址状态、策略版本与迁移优先级写入 Ed25519 签名凭证，允许独立验证与复核。</p>
+            <h3>Seal the evidence</h3>
+            <p>Turn an address result into a signed, portable Q-Seal with a policy version, risk score, and migration priority.</p>
             <code>ASSESS → SIGN → PROVE</code>
           </article>
           <article>
             <div className="step"><b>04</b><span>DARK EXIT</span></div>
-            <h3>加密撤离</h3>
-            <p>研究门限加密与矿工私有中继，缩短迁移交易公开公钥后的抢跑暴露窗口。</p>
+            <h3>Rehearse the exit</h3>
+            <p>Join encrypted-relay drills designed to reduce the public-key race window when vulnerable Bitcoin must move.</p>
             <code>ENCRYPT → RELAY → INCLUDE</code>
           </article>
         </div>
@@ -184,29 +255,48 @@ export default function ProtocolApp() {
 
       <section className="flow">
         <div className="section-head compact-head">
-          <p>CONTROL FLOW / 02</p>
-          <h2>一条确定的响应路径</h2>
+          <p>THE DRILL / 03</p>
+          <h2>Your route through Q-Day.</h2>
         </div>
         <div className="flow-line">
-          <div><b>01</b><span>链上状态</span><small>Bitcoin UTXO Set</small></div>
+          <div><b>01</b><span>Pick a target</span><small>Bitcoin UTXO Set</small></div>
           <i>→</i>
-          <div><b>02</b><span>暴露引擎</span><small>Key-state Graph</small></div>
+          <div><b>02</b><span>Read the exposure</span><small>Key-state Graph</small></div>
           <i>→</i>
-          <div><b>03</b><span>签名判断</span><small>Q-SEAL Receipt</small></div>
+          <div><b>03</b><span>Claim the proof</span><small>Q-Seal Credential</small></div>
           <i>→</i>
-          <div><b>04</b><span>预警与撤离</span><small>Alert / Dark Exit</small></div>
+          <div><b>04</b><span>Join the response</span><small>Alert / Dark Exit</small></div>
+        </div>
+      </section>
+
+      <section className="participation">
+        <div className="section-head">
+          <p>YOUR SEAT / 04</p>
+          <h2>Do more than read the research.</h2>
+          <span>One payment. One numbered Watcher. One year in the network.</span>
+        </div>
+        <div className="participation-grid">
+          <article><strong>10</strong><h3>Q-Seal missions</h3><p>Create ten signed exposure records you can download, verify, and share.</p></article>
+          <article><strong>12</strong><h3>Months on watch</h3><p>Follow Q-Day alerts and changes to the network threat state.</p></article>
+          <article><strong>#</strong><h3>Founding rank</h3><p>Own a permanent serial from the first 2,100 Watchers.</p></article>
+          <article><strong>β</strong><h3>Dark Exit drills</h3><p>Get first access to encrypted-relay simulations and migration rehearsals.</p></article>
+        </div>
+        <div className="why-pay">
+          <p>WHY PAY?</p>
+          <h3>Your 47,619 sats turns a free test into an active defense seat.</h3>
+          <span>It funds the shared exposure index, canary monitoring, signed evidence, and relay drills. It does not buy yield, equity, or a price promise.</span>
         </div>
       </section>
 
       <section className="access" id="access">
         <div className="access-copy">
-          <p className="eyebrow">GENESIS ACCESS</p>
-          <h2>进入防御网络。</h2>
-          <p>开放 2,100 个创世接入席位。每个席位包含 Q-SEAL、预警流、暴露 API 与 Dark Exit 试验权限。</p>
+          <p className="eyebrow">BECOME A FOUNDING WATCHER</p>
+          <h2>Take your seat.</h2>
+          <p>2,100 numbered seats open the Q-Seal missions, Q-Day watch, exposure API, and Dark Exit drills.</p>
           <dl>
-            <div><dt>接入成本</dt><dd>{config ? number(config.priceSats) : '—'} sats</dd></div>
-            <div><dt>可用席位</dt><dd>{config ? number(config.available) : '—'} / 2,100</dd></div>
-            <div><dt>资金边界</dt><dd>99,999,900 sats</dd></div>
+            <div><dt>ONE-TIME ACCESS</dt><dd>{config ? number(config.priceSats) : '—'} sats</dd></div>
+            <div><dt>SEATS OPEN</dt><dd>{config ? number(config.available) : '—'} / 2,100</dd></div>
+            <div><dt>NETWORK CAP</dt><dd>99,999,900 sats</dd></div>
           </dl>
           <div className="capacity"><i style={{ width: `${capacity}%` }} /></div>
         </div>
@@ -224,9 +314,9 @@ export default function ProtocolApp() {
                 spellCheck={false}
                 autoComplete="off"
               />
-              <p>写入签名访问凭证。不要输入私钥、助记词或真实姓名。</p>
+              <p>This ID is written into your signed credential. Never enter a private key, seed phrase, or legal name.</p>
               <button className="orange-button full" disabled={loading || !holder.trim() || !config?.available}>
-                {loading ? 'OPENING…' : 'REQUEST ACCESS'} <b>↗</b>
+                {loading ? 'OPENING…' : `JOIN AS WATCHER #${config ? String(config.minted + 1).padStart(4, '0') : '----'}`} <b>↗</b>
               </button>
             </form>
           )}
@@ -238,7 +328,7 @@ export default function ProtocolApp() {
                 <QRCodeSVG value={order.checkoutUrl ?? window.location.href} size={158} bgColor="#ffffff" fgColor="#111111" />
                 <div>
                   <strong>{number(config?.priceSats ?? 47_619)} SATS</strong>
-                  <p>结算确认后生成签名访问凭证。</p>
+                  <p>Your numbered Watcher credential appears after settlement.</p>
                   {config?.paymentMode === 'btcpay' ? (
                     <a className="orange-button full" href={order.checkoutUrl ?? '#'} target="_blank" rel="noreferrer">OPEN BTCPAY <b>↗</b></a>
                   ) : (
@@ -281,7 +371,7 @@ export default function ProtocolApp() {
 
       <footer>
         <div className="protocol-brand"><span className="btc-mark">₿</span><span>HOURGLASS</span></div>
-        <span>BITCOIN QUANTUM DEFENSE NETWORK</span>
+        <span>THE BITCOIN Q-DAY DRILL</span>
         <span>{config ? `ISSUER ${compact(config.issuerFingerprint, 10, 10)}` : 'ISSUER —'}</span>
       </footer>
     </main>
