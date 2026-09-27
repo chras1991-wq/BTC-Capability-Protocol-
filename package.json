@@ -1,0 +1,62 @@
+{
+  "name": "hourglass-btc",
+  "version": "1.0.0",
+  "description": "Hourglass Genesis Canary Pass issuer",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n ISSUER,INTERFACE -c yellow,green \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:web": "vite",
+    "dev:server": "tsx watch server/index.ts",
+    "build": "tsc -b && vite build && tsup server/index.ts --format esm --platform node --out-dir dist-server --clean",
+    "start": "NODE_ENV=production node dist-server/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chras1991-wq/BTC-Capability-Protocol-.git"
+  },
+  "keywords": [
+    "bitcoin",
+    "post-quantum",
+    "security",
+    "utxo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chras1991-wq/BTC-Capability-Protocol-/issues"
+  },
+  "homepage": "https://github.com/chras1991-wq/BTC-Capability-Protocol-#readme",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "bitcoinjs-lib": "^7.0.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/supertest": "^7.2.1",
+    "@vercel/node": "^16.0.1",
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.5",
+    "happy-dom": "^20.14.5",
+    "supertest": "^7.3.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}
