@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api, type MintConfig, type MintOrder, type SignedPass } from './api'
 import { auditAddress, formatSats, type AuditResult } from './auditor'
-import './field.css'
+import './sheet.css'
 
 function compact(value: string, start = 10, end = 8) {
   if (value.length <= start + end + 1) return value
@@ -23,6 +23,26 @@ function downloadCredential(pass: SignedPass) {
   URL.revokeObjectURL(url)
 }
 
+function Gauge({ score }: { score: number | null }) {
+  const angle = score == null ? -6 : -118 + (score / 100) * 236
+  const ticks = Array.from({ length: 21 }, (_, index) => -118 + index * 11.8)
+  return (
+    <svg className="gauge" viewBox="0 0 320 210" aria-hidden="true">
+      <path d="M34 168 A126 126 0 0 1 286 168" fill="none" stroke="#1c1b18" strokeWidth="1.2" />
+      {ticks.map((tick) => (
+        <line key={tick} x1="160" y1="46" x2="160" y2={tick % 23.6 < 6 ? 58 : 53} stroke="#1c1b18" strokeWidth="1" transform={`rotate(${tick} 160 168)`} />
+      ))}
+      <g style={{ transform: `rotate(${angle}deg)`, transformOrigin: '160px 168px', transition: 'transform .7s cubic-bezier(.2,.7,.2,1)' }}>
+        <line x1="160" y1="168" x2="160" y2="58" stroke="#c2410c" strokeWidth="1.6" />
+      </g>
+      <circle cx="160" cy="168" r="4.5" fill="#1c1b18" />
+      <text x="42" y="188">0</text>
+      <text x="154" y="34">50</text>
+      <text x="268" y="188">100</text>
+    </svg>
+  )
+}
+
 export default function ProtocolApp() {
   const [config, setConfig] = useState<MintConfig | null>(null)
   const [holder, setHolder] = useState('')
@@ -35,15 +55,12 @@ export default function ProtocolApp() {
   const [scanError, setScanError] = useState('')
   const [scanning, setScanning] = useState(false)
 
-  const capacity = useMemo(() => {
-    if (!config) return 0
-    return ((config.minted + config.reserved) / config.supply) * 100
-  }, [config])
+  const taken = useMemo(() => (config ? config.minted + config.reserved : 0), [config])
 
   useEffect(() => {
-    api.config().then(setConfig).catch(() => setError('CONTROL_PLANE_OFFLINE'))
+    api.config().then(setConfig).catch(() => setError('The sheet could not reach the issuer.'))
     const id = new URLSearchParams(window.location.search).get('order')
-    if (id) api.order(id).then(setOrder).catch(() => setError('ACCESS_RECORD_NOT_FOUND'))
+    if (id) api.order(id).then(setOrder).catch(() => setError('This record is not on the sheet.'))
   }, [])
 
   useEffect(() => {
@@ -68,7 +85,7 @@ export default function ProtocolApp() {
       setOrder(next)
       history.replaceState(null, '', `?order=${next.id}`)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'ACCESS_REQUEST_FAILED')
+      setError(cause instanceof Error ? cause.message : 'The seat could not be reserved.')
     } finally {
       setLoading(false)
     }
@@ -83,7 +100,7 @@ export default function ProtocolApp() {
     try {
       setScanResult(await auditAddress(scanTarget))
     } catch (cause) {
-      setScanError(cause instanceof Error ? cause.message : 'LIVE_TEST_FAILED')
+      setScanError(cause instanceof Error ? cause.message : 'The chain reading failed.')
     } finally {
       setScanning(false)
     }
@@ -93,8 +110,7 @@ export default function ProtocolApp() {
     if (!order) return
     setLoading(true)
     try {
-      const next = await api.mockSettle(order.id)
-      setOrder(next)
+      setOrder(await api.mockSettle(order.id))
       setConfig(await api.config())
     } finally {
       setLoading(false)
@@ -118,281 +134,156 @@ export default function ProtocolApp() {
     history.replaceState(null, '', window.location.pathname)
   }
 
+  const verdict = !scanResult
+    ? 'Waiting for an address.'
+    : scanResult.exposure === 'shielded'
+      ? 'The key is still behind its hash.'
+      : scanResult.exposure === 'empty'
+        ? 'Nothing remains to take.'
+        : 'The public key is already visible.'
+
   return (
-    <main>
-      <nav>
-        <a className="protocol-brand" href="#">
-          <span className="btc-mark">₿</span>
-          <span>HOURGLASS</span>
-        </a>
-        <div className="protocol-nav">
-          <a href="#test">Live Test</a>
-          <a href="#missions">Missions</a>
-          <a href="#access">Join</a>
-        </div>
-        <div className="network-state"><i /> CONTROL PLANE / ONLINE</div>
-      </nav>
-
-      <header className="protocol-hero">
-        <div className="hero-ghost" aria-hidden="true">FIELD<br />UNIT</div>
-        <div className="cosmic-coordinates" aria-hidden="true">
-          <span>PART: HG–QD/01</span>
-          <span>CAL: 2140–09</span>
-          <span>STATUS: TEST READY</span>
-        </div>
-        <div className="hero-copy">
-          <p className="eyebrow">THE BITCOIN Q-DAY DRILL</p>
-          <h1>Would your Bitcoin<br /><em>survive Q-Day?</em></h1>
-          <p className="hero-deck">
-            Put any public Bitcoin address through a live exposure test. Find the leaked keys,
-            measure the value at risk, and join 2,100 founding Watchers preparing the exit route.
-          </p>
-          <div className="hero-actions">
-            <a className="orange-button" href="#test">TEST AN ADDRESS <b>↓</b></a>
-            <span>NO PRIVATE KEYS<br />NO CUSTODY</span>
-          </div>
-        </div>
-
-        <div className="block-visual" aria-hidden="true">
-          <i className="screw screw-a" /><i className="screw screw-b" />
-          <i className="screw screw-c" /><i className="screw screw-d" />
-          <div className="block-head"><span>BLOCK 000000</span><span>Q / 01</span></div>
-          <div className="key-orbit">
-            <div className="event-horizon" />
-            <span className="key-core">K</span>
-            <i className="orbit-one" />
-            <i className="orbit-two" />
-            <b className="satellite sat-a">TX</b>
-            <b className="satellite sat-b">PK</b>
-            <b className="satellite sat-c">Q</b>
-          </div>
-          <div className="block-foot"><span>SECP256K1</span><span>EXPOSURE: VISIBLE</span></div>
-        </div>
+    <div className="sheet">
+      <header className="mast">
+        <a href="#">Hourglass</a>
+        <nav>
+          <a href="#reading">Reading</a>
+          <a href="#work">Work</a>
+          <a href="#seat">Seat</a>
+        </nav>
+        <span>Sheet 01 · 2026</span>
       </header>
 
-      <section className="risk-strip" id="exposure">
-        <div><span>P2PK / P2TR</span><strong>PUBLIC KEY VISIBLE</strong><small>Exposed by design</small></div>
-        <div><span>P2PKH / P2WPKH</span><strong>HASH SHIELDED</strong><small>Until the first spend</small></div>
-        <div><span>REUSED ADDRESS</span><strong>KEY REVEALED</strong><small>Old spend, live risk</small></div>
-        <div><span>THREAT MODEL</span><strong>SHOR / CRQC</strong><small>Detect before migration</small></div>
+      <section className="opening">
+        <div>
+          <p className="folio">A field reading for public Bitcoin keys</p>
+          <h1>Test the coin before the key is useful to anyone else.</h1>
+          <p>
+            Paste a public address. Hourglass reads its script, spend history, and live balance,
+            then sets the needle. The free reading stops there. A seat keeps the record, the watch,
+            and a place in the exit drill.
+          </p>
+        </div>
+        <Gauge score={scanResult?.score ?? null} />
       </section>
 
-      <section className="live-test" id="test">
-        <div className="section-head">
-          <p>PLAY / 01</p>
-          <h2>Run the live exposure test.</h2>
-          <span>Public chain data only. Never enter a private key.</span>
-        </div>
-        <div className="test-grid">
-          <form className="test-console" onSubmit={runExposureTest}>
-            <div className="console-head"><span>Q-DAY STRESS TEST</span><span>LIVE</span></div>
-            <label htmlFor="scan-target">BITCOIN ADDRESS</label>
+      <section className="reading" id="reading">
+        <form onSubmit={runExposureTest}>
+          <label htmlFor="scan-target">Public address</label>
+          <div className="ruled">
             <input
               id="scan-target"
               value={scanTarget}
               onChange={(event) => setScanTarget(event.target.value)}
-              placeholder="bc1q… / bc1p… / 1… / 3…"
+              placeholder="bc1… or 1…"
               spellCheck={false}
               autoComplete="off"
             />
-            <button className="orange-button full" disabled={scanning || !scanTarget.trim()}>
-              {scanning ? 'READING THE CHAIN…' : 'START THE DRILL'} <b>↗</b>
-            </button>
-            {scanError && <div className="test-error">FAULT / {scanError}</div>}
-          </form>
-
-          <div className={`test-result ${scanResult ? scanResult.exposure : 'idle'}`}>
-            {!scanResult ? (
-              <>
-                <div className="radar"><i /><i /><i /><b>?</b></div>
-                <h3>NO TARGET LOCKED</h3>
-                <p>Enter a public address to reveal its script type, key state, live UTXOs, and Q-Day priority.</p>
-              </>
-            ) : (
-              <>
-                <div className="result-top">
-                  <span>EXPOSURE SCORE</span>
-                  <strong>{scanResult.score}<small>/100</small></strong>
-                </div>
-                <h3>{scanResult.exposure === 'shielded' ? 'HASH SHIELD ACTIVE' : scanResult.exposure === 'empty' ? 'NO VALUE AT RISK' : 'PUBLIC KEY EXPOSED'}</h3>
-                <div className="result-stats">
-                  <div><span>SCRIPT</span><b>{scanResult.script.type}</b></div>
-                  <div><span>KEY STATE</span><b>{scanResult.publicKeyRevealed ? 'REVEALED' : 'HASHED'}</b></div>
-                  <div><span>LIVE VALUE</span><b>{formatSats(scanResult.balance)} sats</b></div>
-                </div>
-                <p>{scanResult.findings[0]}</p>
-                <a href="#access">TURN THIS INTO A SIGNED Q-SEAL →</a>
-              </>
-            )}
+            <button disabled={scanning || !scanTarget.trim()}>{scanning ? 'Reading' : 'Read'}</button>
           </div>
-        </div>
-      </section>
+          <small>No private key. No signature. The address is sent to a public indexer.</small>
+          {scanError && <p className="fault">{scanError}</p>}
+        </form>
 
-      <section className="mechanism" id="missions">
-        <div className="section-head">
-          <p>MISSIONS / 02</p>
-          <h2>Four ways to enter the defense.</h2>
-          <span>Test, watch, prove, and rehearse the exit.</span>
-        </div>
-        <div className="mechanism-grid">
-          <article>
-            <div className="step"><b>01</b><span>ATLAS</span></div>
-            <h3>Hunt exposed keys</h3>
-            <p>Scan UTXOs, script types, old spends, and reused addresses. Find the Bitcoin already visible to a quantum attacker.</p>
-            <code>UTXO → SCRIPT → KEY STATE</code>
-          </article>
-          <article>
-            <div className="step"><b>02</b><span>CANARY</span></div>
-            <h3>Stand the watch</h3>
-            <p>Follow cryptographic canaries, dormant-coin movement, and attack signals. Be early when the threat state changes.</p>
-            <code>SIGNAL → VERIFY → ALERT</code>
-          </article>
-          <article>
-            <div className="step"><b>03</b><span>Q-SEAL</span></div>
-            <h3>Seal the evidence</h3>
-            <p>Turn an address result into a signed, portable Q-Seal with a policy version, risk score, and migration priority.</p>
-            <code>ASSESS → SIGN → PROVE</code>
-          </article>
-          <article>
-            <div className="step"><b>04</b><span>DARK EXIT</span></div>
-            <h3>Rehearse the exit</h3>
-            <p>Join encrypted-relay drills designed to reduce the public-key race window when vulnerable Bitcoin must move.</p>
-            <code>ENCRYPT → RELAY → INCLUDE</code>
-          </article>
-        </div>
-      </section>
-
-      <section className="flow">
-        <div className="section-head compact-head">
-          <p>THE DRILL / 03</p>
-          <h2>Your route through Q-Day.</h2>
-        </div>
-        <div className="flow-line">
-          <div><b>01</b><span>Pick a target</span><small>Bitcoin UTXO Set</small></div>
-          <i>→</i>
-          <div><b>02</b><span>Read the exposure</span><small>Key-state Graph</small></div>
-          <i>→</i>
-          <div><b>03</b><span>Claim the proof</span><small>Q-Seal Credential</small></div>
-          <i>→</i>
-          <div><b>04</b><span>Join the response</span><small>Alert / Dark Exit</small></div>
-        </div>
-      </section>
-
-      <section className="participation">
-        <div className="section-head">
-          <p>YOUR SEAT / 04</p>
-          <h2>Do more than read the research.</h2>
-          <span>One payment. One numbered Watcher. One year in the network.</span>
-        </div>
-        <div className="participation-grid">
-          <article><strong>10</strong><h3>Q-Seal missions</h3><p>Create ten signed exposure records you can download, verify, and share.</p></article>
-          <article><strong>12</strong><h3>Months on watch</h3><p>Follow Q-Day alerts and changes to the network threat state.</p></article>
-          <article><strong>#</strong><h3>Founding rank</h3><p>Own a permanent serial from the first 2,100 Watchers.</p></article>
-          <article><strong>β</strong><h3>Dark Exit drills</h3><p>Get first access to encrypted-relay simulations and migration rehearsals.</p></article>
-        </div>
-        <div className="why-pay">
-          <p>WHY PAY?</p>
-          <h3>Your 47,619 sats turns a free test into an active defense seat.</h3>
-          <span>It funds the shared exposure index, canary monitoring, signed evidence, and relay drills. It does not buy yield, equity, or a price promise.</span>
-        </div>
-      </section>
-
-      <section className="access" id="access">
-        <div className="access-copy">
-          <p className="eyebrow">BECOME A FOUNDING WATCHER</p>
-          <h2>Take your seat.</h2>
-          <p>2,100 numbered seats open the Q-Seal missions, Q-Day watch, exposure API, and Dark Exit drills.</p>
-          <dl>
-            <div><dt>ONE-TIME ACCESS</dt><dd>{config ? number(config.priceSats) : '—'} sats</dd></div>
-            <div><dt>SEATS OPEN</dt><dd>{config ? number(config.available) : '—'} / 2,100</dd></div>
-            <div><dt>NETWORK CAP</dt><dd>99,999,900 sats</dd></div>
-          </dl>
-          <div className="capacity"><i style={{ width: `${capacity}%` }} /></div>
-        </div>
-
-        <div className="access-console">
-          {!order && config?.paymentMode === 'offline' && (
-            <div className="offline-state">
-              <div className="console-head"><span>ACCESS GATE</span><span>STANDBY</span></div>
-              <div className="credential-mark"><span>₿</span><b>HG</b></div>
-              <h3>LIVE TESTS ARE OPEN.<br />WATCHER ACCESS IS NEXT.</h3>
-              <p>The public Q-Day drill is live. Self-hosted Bitcoin settlement and persistent credential issuance are being connected before the first seat opens.</p>
-              <a className="orange-button full" href="#test">RUN THE FREE DRILL <b>↑</b></a>
-            </div>
+        <article className={scanResult ? 'stamped' : ''}>
+          {scanResult && <b className="stamp">{scanResult.score}</b>}
+          <h2>{verdict}</h2>
+          {scanResult ? (
+            <dl>
+              <div><dt>Script</dt><dd>{scanResult.script.type}</dd></div>
+              <div><dt>Key</dt><dd>{scanResult.publicKeyRevealed ? 'Revealed' : 'Hashed'}</dd></div>
+              <div><dt>Balance</dt><dd>{formatSats(scanResult.balance)} sats</dd></div>
+              <div><dt>Note</dt><dd>{scanResult.findings[0]}</dd></div>
+            </dl>
+          ) : (
+            <p>The dial stays at rest until a real output is read.</p>
           )}
+        </article>
+      </section>
 
+      <section className="work" id="work">
+        <h2>What a seat actually does</h2>
+        <dl>
+          <div>
+            <dt>Atlas</dt>
+            <dd>Ten signed readings. Each one records the address, key state, balance, and the policy used to judge it.</dd>
+          </div>
+          <div>
+            <dt>Canary</dt>
+            <dd>Twelve months of notices when a public challenge, old coin, or exposure signal changes.</dd>
+          </div>
+          <div>
+            <dt>Q-Seal</dt>
+            <dd>A portable proof you can hand to a counterparty without asking them to trust the website.</dd>
+          </div>
+          <div>
+            <dt>Dark Exit</dt>
+            <dd>A numbered place in the encrypted-relay drills, ahead of open enrollment.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="seat" id="seat">
+        <div>
+          <h2>2,100 names on the first sheet.</h2>
+          <p>
+            {config ? number(config.priceSats) : '47,619'} sats once. The sheet closes at 99,999,900 sats.
+            The payment buys the four items above. It does not buy a return, a share, or a promise that the seat will trade.
+          </p>
+          <p className="count">{String(taken).padStart(4, '0')} taken · {config ? String(config.available).padStart(4, '0') : '2100'} open</p>
+        </div>
+
+        <div className="form-card">
+          {!order && config?.paymentMode === 'offline' && (
+            <>
+              <h3>Readings are open. Seats are not.</h3>
+              <p>Bitcoin settlement is still being connected. The dial above already works.</p>
+              <a href="#reading">Make a reading</a>
+            </>
+          )}
           {!order && config?.paymentMode !== 'offline' && (
             <form onSubmit={activate}>
-              <div className="console-head"><span>ACCESS REQUEST</span><span>01</span></div>
-              <label htmlFor="holder">PUBLIC HOLDER ID</label>
-              <input
-                id="holder"
-                value={holder}
-                onChange={(event) => setHolder(event.target.value)}
-                placeholder="NOSTR PUBKEY / BTC ADDRESS / PSEUDONYM"
-                spellCheck={false}
-                autoComplete="off"
-              />
-              <p>This ID is written into your signed credential. Never enter a private key, seed phrase, or legal name.</p>
-              <button className="orange-button full" disabled={loading || !holder.trim() || !config?.available}>
-                {loading ? 'OPENING…' : `JOIN AS WATCHER #${config ? String(config.minted + 1).padStart(4, '0') : '----'}`} <b>↗</b>
-              </button>
+              <label htmlFor="holder">Name on the credential</label>
+              <input id="holder" value={holder} onChange={(event) => setHolder(event.target.value)} placeholder="A public name or address" spellCheck={false} autoComplete="off" />
+              <button disabled={loading || !holder.trim() || !config?.available}>{loading ? 'Holding' : 'Reserve the next seat'}</button>
             </form>
           )}
-
           {order?.status === 'pending' && (
-            <div className="payment-state">
-              <div className="console-head"><span>ACCESS RESERVED</span><span>02</span></div>
-              <div className="payment-body">
-                <QRCodeSVG value={order.checkoutUrl ?? window.location.href} size={158} bgColor="#ffffff" fgColor="#111111" />
-                <div>
-                  <strong>{number(config?.priceSats ?? 47_619)} SATS</strong>
-                  <p>Your numbered Watcher credential appears after settlement.</p>
-                  {config?.paymentMode === 'btcpay' ? (
-                    <a className="orange-button full" href={order.checkoutUrl ?? '#'} target="_blank" rel="noreferrer">OPEN BTCPAY <b>↗</b></a>
-                  ) : (
-                    <button className="orange-button full dev" onClick={simulateSettlement} disabled={loading}>DEV / CONFIRM <b>→</b></button>
-                  )}
-                  <button className="text-action" onClick={reset}>CANCEL</button>
-                </div>
+            <div className="pay">
+              <QRCodeSVG value={order.checkoutUrl ?? window.location.href} size={132} bgColor="#f7f4ee" fgColor="#1c1b18" />
+              <div>
+                <strong>{number(config?.priceSats ?? 47_619)} sats</strong>
+                <p>The credential is written after the payment settles.</p>
+                {config?.paymentMode === 'btcpay'
+                  ? <a href={order.checkoutUrl ?? '#'} target="_blank" rel="noreferrer">Pay</a>
+                  : <button onClick={simulateSettlement} disabled={loading}>Mark paid in development</button>}
+                <button className="quiet" onClick={reset}>Release</button>
               </div>
             </div>
           )}
-
-          {order?.status === 'expired' && (
-            <div className="expired-state">
-              <div className="console-head"><span>ACCESS EXPIRED</span><span>00</span></div>
-              <h3>RESERVATION CLOSED</h3>
-              <button className="orange-button full" onClick={reset}>RESTART <b>↺</b></button>
-            </div>
-          )}
-
+          {order?.status === 'expired' && <button onClick={reset}>Start again</button>}
           {order?.status === 'paid' && order.credential && (
-            <div className="credential-state">
-              <div className="console-head"><span>ACCESS ACTIVE</span><span>{String(order.serial).padStart(4, '0')}</span></div>
-              <div className="credential-mark"><span>₿</span><b>HG</b></div>
-              <h3>GENESIS ACCESS<br />#{String(order.serial).padStart(4, '0')}</h3>
+            <div>
+              <h3>Seat {String(order.serial).padStart(4, '0')}</h3>
               <dl>
-                <div><dt>HOLDER</dt><dd>{compact(order.holder, 18, 10)}</dd></div>
-                <div><dt>SIGNATURE</dt><dd>ED25519 / {verified === true ? 'VALID' : verified === false ? 'INVALID' : 'UNTESTED'}</dd></div>
-                <div><dt>ISSUER</dt><dd>{compact(order.credential.proof.fingerprint, 12, 10)}</dd></div>
+                <div><dt>Name</dt><dd>{compact(order.holder, 18, 10)}</dd></div>
+                <div><dt>Proof</dt><dd>{verified === true ? 'Valid' : verified === false ? 'Rejected' : 'Not checked'}</dd></div>
               </dl>
-              <div className="credential-actions">
-                <button className="orange-button full" onClick={() => downloadCredential(order.credential!)}>DOWNLOAD <b>↓</b></button>
-                <button className="verify-button" onClick={verifyCredential}>VERIFY</button>
+              <div className="pair">
+                <button onClick={() => downloadCredential(order.credential!)}>Download</button>
+                <button className="quiet" onClick={verifyCredential}>Check signature</button>
               </div>
             </div>
           )}
-
-          {error && <div className="console-error">FAULT / {error}</div>}
+          {error && <p className="fault">{error}</p>}
         </div>
       </section>
 
       <footer>
-        <div className="protocol-brand"><span className="btc-mark">₿</span><span>HOURGLASS</span></div>
-        <span>THE BITCOIN Q-DAY DRILL</span>
-        <span>{config ? `ISSUER ${compact(config.issuerFingerprint, 10, 10)}` : 'ISSUER —'}</span>
+        <span>Hourglass</span>
+        <span>Public-key exposure sheet</span>
+        <span>{config ? compact(config.issuerFingerprint, 8, 8) : 'Key pending'}</span>
       </footer>
-    </main>
+    </div>
   )
 }
