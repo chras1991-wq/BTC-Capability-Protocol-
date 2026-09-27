@@ -196,15 +196,15 @@ export async function auditAddress(
     fetcher(`${root}/address/${encodeURIComponent(address)}/utxo`),
   ])
 
-  if (!addressResponse.ok || !utxoResponse.ok) {
-    if (addressResponse.status === 429 || utxoResponse.status === 429) {
-      throw new Error('The public indexer is rate-limiting requests. Try again shortly.')
-    }
+  if (addressResponse.status === 429 || utxoResponse.status === 429) {
+    throw new Error('The public indexer is rate-limiting requests. Try again shortly.')
+  }
+  if (!addressResponse.ok) {
     throw new Error('The address could not be read from the public Bitcoin indexer.')
   }
 
   const data = (await addressResponse.json()) as MempoolAddress
-  const utxos = (await utxoResponse.json()) as MempoolUtxo[]
+  const utxos = utxoResponse.ok ? (await utxoResponse.json()) as MempoolUtxo[] : []
   return evaluate(address, network, script, data, utxos)
 }
 
